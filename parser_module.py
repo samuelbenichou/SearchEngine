@@ -24,11 +24,17 @@ class Parse:
         #text_tokens_without_stopwords = [w.lower() for w in text_tokens if w not in self.stop_words]
         if "@" in text_tokens:
             self.parse_at(text_tokens)
+        self.parse_percentage(text_tokens)
         text_tokens_without_stopwords = [w for w in text_tokens if w.lower() not in self.stop_words]
         print(text_tokens_without_stopwords)
         return text_tokens_without_stopwords
 
     def parse_percentage(self, text):
+        """
+        This function takes a tweet document list and parse the percentage
+        :param text:
+        :return:
+        """
         for i, term in enumerate(text):
             if (text[i] == "%" or text[i] == "percent" or text[i] == "percentage") and (text[i-1].isnumeric() or text[i-1].replace('.', '', 1).isdigit()):
                 text[i] = "{}%".format(''.join(text[i - 1]))
@@ -54,6 +60,11 @@ class Parse:
         return broken_hashtags
 
     def parse_URL(self ,url):
+        """
+        This function takes a tweet document list and parse the URL
+        :param url:
+        :return:
+        """
         url_encoding_special_characters = ["$", "&", "+", ",", "/", ":", ";", "=", "?", "@", "%", "#", "//"]
         url_list = re.split('[/:&=@;%#?+-]', url[0])
         url_list = [e for e in url_list if e not in ('')]
@@ -65,12 +76,65 @@ class Parse:
         return url_list
 
     def parse_at(self, text): # Assume there is a @
+        """
+        This function takes a tweet document list and parse the @
+        :param url:
+        :return:
+        """
         for i,term in enumerate(text):
             if text[i] == "@":
                 text[i] = "@{}".format(''.join(text[i+1]))
                 del text[i+1]
         print(text)
 
+    def parse_number(self, text):
+        """
+        This function takes a tweet document list and parse the numbers
+        :param text:
+        :return:
+        """
+        for i, term in enumerate(text):
+            if self.is_int(term.replace(',','')) or self.is_float(term.replace(',','')):
+                converted_number = self.convert_to_num(term.replace(',',''))
+                print(converted_number)
+                if (text[i + 1] == "Thousand") or (1000 <= converted_number < 1000000):
+                    text[i] = "{}K".format(''.join(text[i])) if text[i + 1] == "Thousand" else "{}K".format("%.3f" % (converted_number/1000))
+                    del text[i + 1]
+                elif (text[i + 1] == "Million") or (1000000 <= converted_number < 1000000000):
+                    text[i] = "{}M".format(''.join(text[i])) if text[i + 1] == "Million" else "{}M".format("%.3f" % (converted_number/1000000))
+                    del text[i + 1]
+                elif (text[i + 1] == "Billion") or (1000000000 <= converted_number):
+                    text[i] = "{}B".format(''.join(text[i])) if text[i + 1] == "Billion" else "{}B".format("%.3f" % (converted_number/1000000000))
+                    del text[i + 1]
+                elif converted_number < 1000 and self.check_if_term_is_fraction(text[i + 1]) and not self.is_float(term):
+                    text[i] = term + " {}".format(''.join(text[i+1]))
+                    del text[i + 1]
+
+        print(text)
+
+    def check_if_term_is_fraction(self, term):
+        values = term.split('/')
+        return len(values) == 2 and all(i.isdigit() for i in values)
+
+    def is_float(self, value):
+        try:
+            float(value)
+            return True
+        except:
+            return False
+
+    def is_int(self, value):
+        try:
+            int(value)
+            return True
+        except:
+            return False
+
+    def convert_to_num(self, value):
+        try:
+            return int(value)
+        except ValueError:
+            return float(value)
 
     def parse_doc(self, doc_as_list):
         """
@@ -114,9 +178,13 @@ if __name__ == '__main__':
     #p.parse_hashtags(['@', 'samuel', 'futur', 'ballon', "d'or", '#', "stayAtHome", "#", "stay_at_home", '#', "goat"])
     #p.parse_hashtags(['#', "stayAtHome", "#", "stay_at_home" , '#',"goat" ])
     #p.parse_doc(l)
-    n = '@MrStache9 The idiot can money and the media worries about Scheer with no mask 10.6 percentage. #GOAT'
+    n = '@MrStache9 The idiot can money 35 3/4 and the media worries about Scheer with no mask 10.6 percentage. #GOAT'
     #p.parse_sentence(n)
-    p.parse_percentage(['@MrStache9', 'The', 'idiot', 'can', 'money', 'and', 'the', 'media', 'worries', 'about', 'Scheer', 'with', 'no', 'mask', '55', 'percentage', '.', '#', 'GOAT'])
+    #p.parse_percentage(['@MrStache9', 'The', 'idiot', 'can', 'money', 'and', 'the', 'media', 'worries', 'about', 'Scheer', 'with', 'no', 'mask', '55', 'percentage', '.', '#', 'GOAT'])
     #p.parse_doc(l)
     #p.parse_at(['rt', '@', 'kylekulinski', ':', 'japan', 'less', '1,000', 'covid', 'deaths', 'never', 'went', 'full', 'economic', 'shut', 'unemployment', 'rate', 'of…'])
     #p.parse_URL(["https://www.stackoverflow.com/questions/8247792/python-how-to-cut-a-string-in-python"])
+    #p.parse_number(['@MrStache9', 'The', 'idiot', 'can', 'money', 'and', 'the', 'media', 'worries', 'about', 'Scheer', 'with', 'no', 'mask', '10012,3', 'dollar', '.', '#', 'GOAT'])
+    #p.parse_number(['10,123,000,000', 'pp', '.', '#', 'GOAT'])
+    p.parse_number(['@MrStache9', 'The', 'idiot', 'can', 'money', '35.5', '3/4', 'and', 'the', 'media', 'worries', 'about', 'Scheer', 'with', 'no', 'mask', '10.6%', '.', '#', 'GOAT'])
+
