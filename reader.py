@@ -17,6 +17,7 @@ class ReadFile:
         :return: a dataframe contains tweets.
         """
         filenames = glob2.glob("*.parquet")
+        #print(filenames)
         pool = ThreadPool(2)
         pool.map(self.read_filenames, filenames)
         pool.close()

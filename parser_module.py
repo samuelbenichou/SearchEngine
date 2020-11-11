@@ -2,6 +2,7 @@ from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from document import Document
 import re
+from stemmer import Stemmer
 
 
 class Parse:
@@ -15,29 +16,24 @@ class Parse:
         :param text:
         :return:
         """
-        print(text)
+        #print(text)
         text_tokens = word_tokenize(text)
-        #print(text_tokens)
         text_hashtags = self.parse_hashtags(text_tokens)
         text_tokens.extend(text_hashtags)
-        #print(text_hashtags)
-        self.stop_words.extend(["#", '.',':','’',"'s",'?',',', 'https','”','“','...',"''",'!'])
-        #text_tokens_without_stopwords = [w.lower() for w in text_tokens if w not in self.stop_words]
+        self.stop_words.extend(["#", '.',':','’',"'s",'?',',', 'https','”','“','...',"''",'!','•', '(', ')'])
         if "@" in text_tokens:
             self.parse_at(text_tokens)
-        #print(text_tokens)
         self.parse_URL(text_tokens)
-        #print(text_tokens)
         self.parse_number(text_tokens)
         self.parse_percentage(text_tokens)
         text_tokens_without_stopwords = [w for w in text_tokens if w.lower() not in self.stop_words]
-        print(text_tokens_without_stopwords)
+        #print(text_tokens_without_stopwords)
         return text_tokens_without_stopwords
 
     def parse_percentage(self, text):
         """
-        This function takes a tweet document list and parse the percentage
-        :param text:
+        This function takes a tweet document list and parse the percentage symbol
+        :param text: List of term
         :return:
         """
         for i, term in enumerate(text):
@@ -88,7 +84,7 @@ class Parse:
                 del text[i + 1]
                 del text[i + 1]
                 text.extend(url_list)
-        url_encoding_special_characters = ["$", "&", "+", ",", "/", ":", ";", "=", "?", "@", "%", "#", "//"]
+        #url_encoding_special_characters = ["$", "&", "+", ",", "/", ":", ";", "=", "?", "@", "%", "#", "//"]
 
 
     def parse_at(self, text): # Assume there is a @
@@ -187,18 +183,15 @@ class Parse:
         term_dict = {}
         tokenized_text = self.parse_sentence(full_text)
 
-        #url = self.parse_URL(url)
-
         doc_length = len(tokenized_text)  # after text operations(without stopword).
-
+        stemmer = Stemmer()
+        tokenized_text = stemmer.stem_term(tokenized_text)
         for term in tokenized_text:
             if term not in term_dict.keys():
                 term_dict[term] = 1
             else:
                 term_dict[term] += 1
 
-        """print(full_text)
-        print(tokenized_text)"""
         #print(term_dict)
         document = Document(tweet_id, tweet_date, full_text, url, retweet_text, retweet_url, quote_text,
                             quote_url, term_dict, doc_length)
@@ -206,7 +199,6 @@ class Parse:
 
 
 if __name__ == '__main__':
-    #print("Samuel")
     p = Parse()
     l = ['1280947322000531456', 'Wed Jul 08 19:30:15 +0000 2020', '@MrStache9 The idiot can money and the media worries about Scheer with no mask. Laser focus guys well done. #GOAT', '[]', '', None, '', None]
     #p.parse_hashtags(['@', 'samuel', 'futur', 'ballon', "d'or", '#', "stayAtHome", "#", "stay_at_home", '#', "GOAT"])

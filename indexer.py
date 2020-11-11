@@ -28,3 +28,4 @@ class Indexer:
 
             except:
                 print('problem with the following key {}'.format(term[0]))
+        print(document_dictionary)
