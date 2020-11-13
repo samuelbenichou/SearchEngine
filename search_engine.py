@@ -31,6 +31,10 @@ def run_engine():
         number_of_documents += 1
         # index the document data
         indexer.add_new_doc(parsed_document)
+    #print(indexer.inverted_idx)
+    #print(indexer.postingDict)
+    print(indexer.get_tweet_info('1280947322000531456'))
+    print(indexer.get_term_info("Donald Trump"))
     print('Finished parsing and indexing. Starting to export files')
 
     utils.save_obj(indexer.inverted_idx, "inverted_idx")

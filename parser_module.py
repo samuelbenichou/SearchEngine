@@ -3,12 +3,15 @@ from nltk.tokenize import word_tokenize
 from document import Document
 import re
 from stemmer import Stemmer
+from nltk import ne_chunk, pos_tag
+from nltk.tree import Tree
 
 
 class Parse:
 
     def __init__(self):
         self.stop_words = stopwords.words('english')
+        self.corona_words = ["COVID-19", "covid", "coronavirus"]
 
     def parse_sentence(self, text):
         """
@@ -18,17 +21,46 @@ class Parse:
         """
         #print(text)
         text_tokens = word_tokenize(text)
-        text_hashtags = self.parse_hashtags(text_tokens)
-        text_tokens.extend(text_hashtags)
-        self.stop_words.extend(["#", '.',':','’',"'s",'?',',', 'https','”','“','...',"''",'!','•', '(', ')'])
         if "@" in text_tokens:
             self.parse_at(text_tokens)
+        self.get_continuous_chunks(text_tokens)
+        text_hashtags = self.parse_hashtags(text_tokens)
+        text_tokens.extend(text_hashtags)
+        self.stop_words.extend(["#", '.',':','’',"'s",'?',',', 'https','”','“','...',"''",'!','•', '(', ')','',"n't"])
+        # if "@" in text_tokens:
+        #     self.parse_at(text_tokens)
         self.parse_URL(text_tokens)
         self.parse_number(text_tokens)
         self.parse_percentage(text_tokens)
         text_tokens_without_stopwords = [w for w in text_tokens if w.lower() not in self.stop_words]
         #print(text_tokens_without_stopwords)
         return text_tokens_without_stopwords
+
+    def get_continuous_chunks(self, text):
+        chunked = ne_chunk(pos_tag(text))
+        prev = None
+        continuous_chunk = []
+        current_chunk = []
+
+        for i in chunked:
+            if type(i) == Tree:
+                current_chunk.append(" ".join([token for token, pos in i.leaves()]))
+            elif current_chunk:
+                named_entity = " ".join(current_chunk)
+                if named_entity not in continuous_chunk:
+                    continuous_chunk.append(named_entity)
+                    current_chunk = []
+            else:
+                continue
+
+        if continuous_chunk:
+            named_entity = " ".join(current_chunk)
+            if named_entity not in continuous_chunk and named_entity != '':
+                continuous_chunk.append(named_entity)
+
+        for named_entity_recognition in continuous_chunk:
+            if named_entity_recognition not in text:
+                text.append(named_entity_recognition)
 
     def parse_percentage(self, text):
         """
@@ -185,7 +217,7 @@ class Parse:
 
         doc_length = len(tokenized_text)  # after text operations(without stopword).
         stemmer = Stemmer()
-        tokenized_text = stemmer.stem_term(tokenized_text)
+        #tokenized_text = stemmer.stem_tweet(tokenized_text)
         for term in tokenized_text:
             if term not in term_dict.keys():
                 term_dict[term] = 1
@@ -216,5 +248,9 @@ if __name__ == '__main__':
     #p.parse_number(['@MrStache9', 'The', 'idiot', 'can', 'money', '35.5', '3/4', 'and', 'the', 'media', 'worries', 'about', 'Scheer', 'with', 'no', 'mask', '10.6%', '.', '#', 'GOAT'])
     #p.parse_URL(['@', 'samuel', 'futur', 'ballon', "d'or","https://twitter.com/i/web/status/1280947321581248514" , '#', "stayAtHome", "#", "stay_at_home", '#', "GOAT"])
     #p.parse_URL(["https://www.twitter.com/i/web/status/1280947321581248514", 'samuel', 'benichou' , "https://www.chelseafc.com/en", "https://github.com/samuelbenichou"])
-    p.parse_sentence(" #schoolsreopening #COVID19 ")
+    #p.parse_sentence(" #schoolsreopening #COVID19 ")
+    print(p.parse_sentence('Former Vice President Dick Cheney told conservative radio host Laura Ingraham that he was honored to be compared to Alexandria Ocasio-Cortez while in office.'))
+    #print(p.get_continuous_chunks(['Barack', 'Obama', 'husband', 'Alexandria', 'Ocasio-Cortez', 'Donald', 'Trump']))
+    #print(p.parse_sentence("Barack Obama is the husband of Alexandria Ocasio-Cortez and Donald Trump."))
+    #print(p.get_continuous_chunks('Former Vice President Dick Cheney told conservative radio host Laura Ingraham that he was honored to be compared to Alexandria Ocasio-Cortez while in office.'))
 
