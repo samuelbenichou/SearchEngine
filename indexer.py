@@ -52,3 +52,4 @@ class Indexer:
         print("term : {} ".format(term))
         print("df : {}".format(len(self.postingDict.get(term))))
         print("term frequency : {}".format(self.inverted_idx.get(term)))
+        print("******")

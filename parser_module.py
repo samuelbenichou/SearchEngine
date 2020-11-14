@@ -29,7 +29,7 @@ class Parse:
         self.stop_words.extend(["#", '.',':','’',"'s",'?',',', 'https','”','“','...',"''",'!','•', '(', ')','',"n't"])
         # if "@" in text_tokens:
         #     self.parse_at(text_tokens)
-        self.parse_URL(text_tokens)
+        self.parse_URL_in_tweet(text_tokens)
         self.parse_number(text_tokens)
         self.parse_percentage(text_tokens)
         text_tokens_without_stopwords = [w for w in text_tokens if w.lower() not in self.stop_words]
@@ -98,7 +98,7 @@ class Parse:
             text.remove(term_to_parse)
         return broken_hashtags
 
-    def parse_URL(self ,text):
+    def parse_URL_in_tweet(self ,text):
         """
         This function takes a tweet document list and parse the URL
         :param url: ["'ve", 'come', 'https', '//t.co/UsLTzX1Z7e']
@@ -142,7 +142,10 @@ class Parse:
                 converted_number = self.convert_to_num(term.replace(',',''))
                 if i == len(text) - 1:
                     if 1000 <= converted_number < 1000000:
-                        text[i] = "{}K".format("%.3f" % (converted_number / 1000)) if not (converted_number / 1000).is_integer() else "{}K".format(int(converted_number / 1000))
+                        if converted_number is range(1000,2021): # If represent a year
+                            text[i] = "{}".format(converted_number)
+                        else:
+                            text[i] = "{}K".format("%.3f" % (converted_number / 1000)) if not (converted_number / 1000).is_integer() else "{}K".format(int(converted_number / 1000))
                     elif 1000000 <= converted_number < 1000000000:
                         text[i] = "{}M".format("%.3f" % (converted_number / 1000000)) if not (converted_number / 1000000).is_integer() else "{}M".format(int(converted_number / 1000000))
                     elif 1000000000 <= converted_number:
@@ -249,8 +252,9 @@ if __name__ == '__main__':
     #p.parse_URL(['@', 'samuel', 'futur', 'ballon', "d'or","https://twitter.com/i/web/status/1280947321581248514" , '#', "stayAtHome", "#", "stay_at_home", '#', "GOAT"])
     #p.parse_URL(["https://www.twitter.com/i/web/status/1280947321581248514", 'samuel', 'benichou' , "https://www.chelseafc.com/en", "https://github.com/samuelbenichou"])
     #p.parse_sentence(" #schoolsreopening #COVID19 ")
-    print(p.parse_sentence('Former Vice President Dick Cheney told conservative radio host Laura Ingraham that he was honored to be compared to Alexandria Ocasio-Cortez while in office.'))
+    #print(p.parse_sentence('Former Vice President Dick Cheney told conservative radio host Laura Ingraham that he was honored to be compared to Alexandria Ocasio-Cortez while in office.'))
     #print(p.get_continuous_chunks(['Barack', 'Obama', 'husband', 'Alexandria', 'Ocasio-Cortez', 'Donald', 'Trump']))
     #print(p.parse_sentence("Barack Obama is the husband of Alexandria Ocasio-Cortez and Donald Trump."))
     #print(p.get_continuous_chunks('Former Vice President Dick Cheney told conservative radio host Laura Ingraham that he was honored to be compared to Alexandria Ocasio-Cortez while in office.'))
+
 
