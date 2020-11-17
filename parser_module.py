@@ -37,7 +37,7 @@ class Parse:
         return text_tokens_without_stopwords
 
     def get_continuous_chunks(self, text):
-        chunked = ne_chunk(pos_tag(text))
+        chunked = ne_chunk(pos_tag(text)) # check exception
         prev = None
         continuous_chunk = []
         current_chunk = []
