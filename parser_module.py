@@ -5,6 +5,7 @@ import re
 from stemmer import Stemmer
 from nltk import ne_chunk, pos_tag
 from nltk.tree import Tree
+import flag
 
 
 class Parse:
@@ -19,25 +20,29 @@ class Parse:
         :param text:
         :return:
         """
-        #print(text)
+        print(text)
         text_tokens = word_tokenize(text)
         if "@" in text_tokens:
             self.parse_at(text_tokens)
         self.get_continuous_chunks(text_tokens)
         text_hashtags = self.parse_hashtags(text_tokens)
         text_tokens.extend(text_hashtags)
-        self.stop_words.extend(["#", '.',':','’',"'s",'?',',', 'https','”','“','...',"''",'!','•', '(', ')','',"n't"])
+        self.stop_words.extend(["#", '.',':','’',"'s",'?',',', 'https','”','“','...',"''",'!','•', '(', ')','',"n't",'…'])
         # if "@" in text_tokens:
         #     self.parse_at(text_tokens)
         self.parse_URL_in_tweet(text_tokens)
         self.parse_number(text_tokens)
         self.parse_percentage(text_tokens)
+        self.remove_emoji(text_tokens)
         text_tokens_without_stopwords = [w for w in text_tokens if w.lower() not in self.stop_words]
-        #print(text_tokens_without_stopwords)
+        print(text_tokens_without_stopwords)
         return text_tokens_without_stopwords
 
     def get_continuous_chunks(self, text):
-        chunked = ne_chunk(pos_tag(text)) # check exception
+        try:
+            chunked = ne_chunk(pos_tag(text)) # check exception
+        except:
+            return
         prev = None
         continuous_chunk = []
         current_chunk = []
@@ -61,6 +66,34 @@ class Parse:
         for named_entity_recognition in continuous_chunk:
             if named_entity_recognition not in text:
                 text.append(named_entity_recognition)
+
+    def remove_emoji(self, text):
+        regrex_pattern = re.compile(pattern="["
+                                            "\U0001F1E0-\U0001F1FF"  # flags (iOS)
+                                            "\U0001F300-\U0001F5FF"  # symbols & pictographs
+                                            "\U0001F600-\U0001F64F"  # emoticons
+                                            "\U0001F680-\U0001F6FF"  # transport & map symbols
+                                            "\U0001F700-\U0001F77F"  # alchemical symbols
+                                            "\U0001F780-\U0001F7FF"  # Geometric Shapes Extended
+                                            "\U0001F800-\U0001F8FF"  # Supplemental Arrows-C
+                                            "\U0001F900-\U0001F9FF"  # Supplemental Symbols and Pictographs
+                                            "\U0001FA00-\U0001FA6F"  # Chess Symbols
+                                            "\U0001FA70-\U0001FAFF"  # Symbols and Pictographs Extended-A
+                                            "\U00002702-\U000027B0"  # Dingbats
+                                            "\U000024C2-\U0001F251"
+                                            "]+", flags=re.UNICODE)
+        for i,term in enumerate(text):
+            if self.is_flag_emoji(term):
+                #print(flag.dflagize(term)[1:3])
+                #print(flag.ISO3166[flag.dflagize(term)[1:3]])
+                try:
+                    text[i] = flag.ISO3166[flag.dflagize(term)[1:3]]
+                except:
+                    text[i] = ''
+            else :
+                #print(regrex_pattern.sub(r'', term))
+                text[i] = regrex_pattern.sub(r'', term)
+
 
     def parse_percentage(self, text):
         """
@@ -218,6 +251,8 @@ class Parse:
         term_dict = {}
         tokenized_text = self.parse_sentence(full_text)
 
+
+
         doc_length = len(tokenized_text)  # after text operations(without stopword).
         stemmer = Stemmer()
         #tokenized_text = stemmer.stem_tweet(tokenized_text)
@@ -232,6 +267,11 @@ class Parse:
                             quote_url, term_dict, doc_length)
         return document
 
+    def is_flag_emoji(self, c):
+        return "\U0001F1E6\U0001F1E8" <= c <= "\U0001F1FF\U0001F1FC" or c in [
+            "\U0001F3F4\U000e0067\U000e0062\U000e0065\U000e006e\U000e0067\U000e007f",
+            "\U0001F3F4\U000e0067\U000e0062\U000e0073\U000e0063\U000e0074\U000e007f",
+            "\U0001F3F4\U000e0067\U000e0062\U000e0077\U000e006c\U000e0073\U000e007f"]
 
 if __name__ == '__main__':
     p = Parse()
@@ -256,5 +296,10 @@ if __name__ == '__main__':
     #print(p.get_continuous_chunks(['Barack', 'Obama', 'husband', 'Alexandria', 'Ocasio-Cortez', 'Donald', 'Trump']))
     #print(p.parse_sentence("Barack Obama is the husband of Alexandria Ocasio-Cortez and Donald Trump."))
     #print(p.get_continuous_chunks('Former Vice President Dick Cheney told conservative radio host Laura Ingraham that he was honored to be compared to Alexandria Ocasio-Cortez while in office.'))
+    #p.parse_emojis(['RT', '@ProjectLincoln', ':', 'Yesterday', '’', 's', 'new', 'coronavirus', 'cases', ':', '🇩🇰', '10', '🇳🇴', '11', '🇸🇪', '57', '🇩🇪', '298', '🇺🇸', '55.442K'])
+    #['👇🏼😢😡😢😡😡😡😡👇🏼', 'Truth']  ['RT', '@Mariloune', 'WEAR', 'MASK', '😷🙌🏼👊🏽', 'everyone', 'around', '❤️'  'Carsyn', 'Leigh', 'Davis', 'Coronavirus', 'Story', 'Truth', 'MSM', '😂😂😂😂'
+    #['@GovMurphy', 'GTFO', 'fucking', 'problem', 'virus', 'weakened', '🖕😷🖕😷🖕😷🖕😷🖕😷🖕']
+    print(p.remove_emoji(['RT', '@ProjectLincoln', ':', 'Yesterday', '’', 's', 'new', 'coronavirus', 'cases', ':', '🇩🇰', '10', '🇳🇴', '11', '🇸🇪', '57', '🇩🇪', '298', '🇺🇸', '55.442K']))
+
 
 

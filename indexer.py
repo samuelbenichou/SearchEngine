@@ -1,4 +1,8 @@
+from threading import RLock
+
 class Indexer:
+
+    #inverted_idx = {}
 
     def __init__(self, config):
         self.inverted_idx = {}
