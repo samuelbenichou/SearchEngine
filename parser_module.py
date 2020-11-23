@@ -20,7 +20,7 @@ class Parse:
         :param text:
         :return:
         """
-        print(text)
+        #print(text)
         text_tokens = word_tokenize(text)
         if "@" in text_tokens:
             self.parse_at(text_tokens)
@@ -30,12 +30,13 @@ class Parse:
         self.stop_words.extend(["#", '.',':','’',"'s",'?',',', 'https','”','“','...',"''",'!','•', '(', ')','',"n't",'…'])
         # if "@" in text_tokens:
         #     self.parse_at(text_tokens)
+        self.remove_emoji(text_tokens)
         self.parse_URL_in_tweet(text_tokens)
         self.parse_number(text_tokens)
         self.parse_percentage(text_tokens)
-        self.remove_emoji(text_tokens)
+        #self.remove_emoji(text_tokens)
         text_tokens_without_stopwords = [w for w in text_tokens if w.lower() not in self.stop_words]
-        print(text_tokens_without_stopwords)
+        #print(text_tokens_without_stopwords)
         return text_tokens_without_stopwords
 
     def get_continuous_chunks(self, text):
@@ -256,11 +257,16 @@ class Parse:
         doc_length = len(tokenized_text)  # after text operations(without stopword).
         stemmer = Stemmer()
         #tokenized_text = stemmer.stem_tweet(tokenized_text)
-        for term in tokenized_text:
+        """
+        term_dict[term] = [how many time the current term appear in the tweet, [list of position of the term in the tweet]]
+        """
+        for i, term in enumerate(tokenized_text):
             if term not in term_dict.keys():
-                term_dict[term] = 1
+                term_dict[term] = [1, [i]]
             else:
-                term_dict[term] += 1
+                term_dict[term][0] += 1
+                term_dict[term][1].append(i)
+
 
         #print(term_dict)
         document = Document(tweet_id, tweet_date, full_text, url, retweet_text, retweet_url, quote_text,
@@ -299,7 +305,7 @@ if __name__ == '__main__':
     #p.parse_emojis(['RT', '@ProjectLincoln', ':', 'Yesterday', '’', 's', 'new', 'coronavirus', 'cases', ':', '🇩🇰', '10', '🇳🇴', '11', '🇸🇪', '57', '🇩🇪', '298', '🇺🇸', '55.442K'])
     #['👇🏼😢😡😢😡😡😡😡👇🏼', 'Truth']  ['RT', '@Mariloune', 'WEAR', 'MASK', '😷🙌🏼👊🏽', 'everyone', 'around', '❤️'  'Carsyn', 'Leigh', 'Davis', 'Coronavirus', 'Story', 'Truth', 'MSM', '😂😂😂😂'
     #['@GovMurphy', 'GTFO', 'fucking', 'problem', 'virus', 'weakened', '🖕😷🖕😷🖕😷🖕😷🖕😷🖕']
-    print(p.remove_emoji(['RT', '@ProjectLincoln', ':', 'Yesterday', '’', 's', 'new', 'coronavirus', 'cases', ':', '🇩🇰', '10', '🇳🇴', '11', '🇸🇪', '57', '🇩🇪', '298', '🇺🇸', '55.442K']))
-
-
+    #print(p.remove_emoji(['RT', '@ProjectLincoln', ':', 'Yesterday', '’', 's', 'new', 'coronavirus', 'cases', ':', '🇩🇰', '10', '🇳🇴', '11', '🇸🇪', '57', '🇩🇪', '298', '🇺🇸', '55.442K']))
+    p.parse_sentence("This shit right here making me wanna work out 🤔🤔🤔https://t.co/wcB3TZuxPR")
+    p.parse_sentence("@bisping Wear a mask 😷 u donkeys 👊🏼🇨🇦👊🏼")
 

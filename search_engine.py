@@ -3,6 +3,7 @@ from configuration import ConfigClass
 from parser_module import Parse
 from indexer import Indexer
 from searcher import Searcher
+from ExternalMergeSort import ExternalMergeSort
 import utils
 import concurrent.futures
 import timeit
@@ -16,7 +17,7 @@ def run_engine():
     start = timeit.default_timer()
 
     #documents_list = r.read_file(file_name='sample3.parquet')
-    documents_list = r.read_file(file_name='~/Desktop/Corpus')
+    documents_list = r.read_file(file_name='/Users/samuel/Desktop/Corpus')
     print("Number of tweets in the corpus {}".format(len(documents_list)))
 
     stop = timeit.default_timer()
@@ -43,7 +44,7 @@ def run_engine():
 
 
     #print(documents_list)
-
+    start = timeit.default_timer()
     # Iterate over every document in the file
     for idx, document in enumerate(documents_list):
         # parse the document
@@ -52,13 +53,27 @@ def run_engine():
         # index the document data
         indexer.add_new_doc(parsed_document)
     #print(indexer.inverted_idx)
+    if indexer.number_of_term > 0:
+        indexer.create_posting_text()
+
+    mergeSort = ExternalMergeSort(indexer.posting_file)
+    mergeSort.external_merge_sort()
+    mergeSort.connect_pointer_to_term(indexer.inverted_idx)
+    posting_file = mergeSort.get_posting_file()
+    print(posting_file)
     #print(indexer.postingDict)
+    #print(indexer.posting_file)
+
+    #print(indexer.inverted_idx)
+    #print(indexer.tweet_index)
     #print(indexer.get_tweet_info('1280966306292998145'))
     #print(indexer.get_term_info("Donald Trump"))
     #print('Finished parsing and indexing. Starting to export files')
 
     #utils.save_obj(indexer.inverted_idx, "inverted_idx")
     #utils.save_obj(indexer.postingDict, "posting")
+    stop = timeit.default_timer()
+    print('Time of indexer : ', stop - start)
 
 def parse_index_doc(documents_list):
     config = ConfigClass()
@@ -111,6 +126,4 @@ def main():
     #posting2 = load_index("posting2")
     #merge(posting1,posting2)
     #print(dict3)
-    """for doc_tuple in search_and_rank_query(query, inverted_index, k):
-        print('tweet id: {}, score (unique common words with query): {}'.format(doc_tuple[0], doc_tuple[1]))
-        """
+
