@@ -4,12 +4,14 @@ import os
 
 class ExternalMergeSort:
 
-    def __init__(self, posting_file):
+    def __init__(self, posting_file, num_thread):
         self.merge_file = []
         self.merge_counter = 1
         self.posting_file = posting_file
+        self.num_thread = num_thread
 
     def external_merge_sort(self):
+        print(self.posting_file)
         if len(self.posting_file) == 1:
             #print(1)
             self.merge_file.append(self.posting_file[0])
@@ -26,7 +28,7 @@ class ExternalMergeSort:
         try:
             #print("merge beetwen {} and {}".format(posting_file1, posting_file2))
             with open(posting_file1) as file1, open(posting_file2) as file2:
-                with open("postingMerge{}.txt".format(self.merge_counter), 'w') as f:
+                with open("postingMerge{}.txt".format(self.num_thread), 'w') as f:
                     line1 = file1.readline()
                     line2 = file2.readline()
                     while line1 or line2:
@@ -58,14 +60,16 @@ class ExternalMergeSort:
                             line1 = file1.readline()
                             line2 = file2.readline()
 
-            self.posting_file.append("postingMerge{}.txt".format(self.merge_counter))
+            self.posting_file.append("postingMerge{}.txt".format(self.num_thread))
             self.merge_counter += 1
+            self.num_thread += 3
             #print(posting_file1)
             #print(posting_file2)
             self.posting_file.remove(posting_file2)
             self.posting_file.remove(posting_file1)
             os.remove(posting_file1)
             os.remove(posting_file2)
+            #print(self.posting_file)
 
 
         except Exception:
@@ -81,22 +85,12 @@ class ExternalMergeSort:
                 line = file.readline()
                 key = line.split(':')[0][:-1]
                 if key in inverted_idx:
-                    inverted_idx[key][2] = "{}.txt {}".format(self.posting_file[0], counter_line)
+                    inverted_idx[key][2] = "{} {}".format(self.posting_file[0], counter_line)
                     #print(inverted_idx[key])
                 counter_line += 1
 
-        print(inverted_idx)
+        #print(inverted_idx)
 
     def get_posting_file(self):
         return self.posting_file[0]
-
-
-if __name__ == '__main__':
-    e = ExternalMergeSort(["posting1.txt", "posting4.txt", "posting7.txt"])
-    e.external_merge_sort()
-    #e.merge_doc("posting1.txt", "posting4.txt")
-    #print(e.merge_counter)
-    #print(e.posting_file)
-    inverted = {'RT': [4, 4, ''], '@alsoto_7': [1, 1, ''], 'US': [1, 1, ''], 'right': [2, 2, ''], 'literally': [1, 1, ''], 'embarrassment': [1, 1, ''], 't.co': [2, 2, ''], '6ypNr91AS0': [1, 1, ''], '@bujaboy19': [1, 1, ''], 'actually': [1, 1, ''], 'believed': [1, 1, ''], '5G': [1, 1, ''], 'caused': [1, 1, ''], 'coronavirus': [1, 1, ''], 'forget': [1, 1, ''], '@113rii': [1, 1, ''], 'Wear': [1, 1, ''], 'yer': [1, 1, ''], 'masks': [1, 1, ''], 'Zglc8D4xws': [1, 1, ''], '@fishsports': [1, 1, ''], 'move': [1, 1, ''], 'WR': [1, 1, ''], 'Jon': [1, 1, ''], 'Vea': [1, 1, ''], 'Johnson': [1, 1, ''], 'new': [1, 1, ''], 'NFL': [1, 1, ''], 'Reserve/COVID-19': [1, 1, ''], 'list': [1, 1, ''], 'players': [1, 1, ''], 'tested': [1, 1, ''], 'positive/been': [1, 1, ''], 'close': [1, 1, ''], 'con…': [1, 1, ''], 'cowboys': [1, 1, ''], '#cowboys': [1, 1, ''], '@realDonaldTrump': [1, 1, ''], '@Yankees': [1, 1, ''], 'say': [1, 1, ''], 'Chinese': [1, 1, ''], 'virus': [1, 1, ''], 'make': [1, 1, ''], 'trouble': [1, 1, ''], 'nothing': [1, 2, ''], 'China': [1, 1, ''], 'owes': [1, 1, '']}
-    e.connect_pointer_to_term(inverted)
 

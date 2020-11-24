@@ -3,14 +3,14 @@ from posting import Posting
 class Indexer:
 
 
-    def __init__(self, config):
+    def __init__(self, config, num_thread):
         self.inverted_idx = {}
         self.postingDict = {}
         self.tweet_index = {}
         self.config = config
         self.posting_file = []
         self.number_of_term = 0
-        self.num_of_file = 1
+        self.num_of_file = num_thread
 
     def add_new_doc(self, document):
         """
@@ -24,7 +24,7 @@ class Indexer:
         most_recurrent_term = 0
         unique_term = 0
         number_of_word = 0
-        create_posting_file = 2000
+        create_posting_file = 3000
         """
         inverted_idx[term] = [ df , tf , pointer to the posting file ]
         postingDict[term] = [tweet_id, term appearance in tweet , [positional index of the term]] 

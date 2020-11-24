@@ -8,32 +8,46 @@ import utils
 import concurrent.futures
 import timeit
 
+list_posting_file = []
 
 def run_engine():
     config = ConfigClass()
     r = ReadFile(corpus_path=config.get__corpusPath())
     p = Parse()
-    indexer = Indexer(config)
-    start = timeit.default_timer()
+    #indexer = Indexer(config)
+
 
     #documents_list = r.read_file(file_name='sample3.parquet')
     documents_list = r.read_file(file_name='/Users/samuel/Desktop/Corpus')
     print("Number of tweets in the corpus {}".format(len(documents_list)))
 
+
+    third = len(documents_list) // 3
+    two_third = 2 * third
+    start = timeit.default_timer()
+
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        f1 = executor.submit(parse_index_doc, documents_list[:third], 1)
+        f2 = executor.submit(parse_index_doc, documents_list[third:two_third], 2)
+        f3 = executor.submit(parse_index_doc, documents_list[two_third:], 3)
+
     stop = timeit.default_timer()
-    print('Time of reader: ', stop - start)
+    print('total time: ', stop - start)
 
-    middle_index = len(documents_list) // 2
 
-    """with concurrent.futures.ThreadPoolExecutor() as executor:
-        f1 = executor.submit(parse_index_doc, documents_list[:middle_index])
-        f2 = executor.submit(parse_index_doc, documents_list[middle_index:])
+    # Merge inverted index
+    new_inverted_index = merge_inverted_index_dict(f1.result().inverted_idx, f2.result().inverted_idx, f3.result().inverted_idx)
+    utils.save_obj(new_inverted_index, "inverted_index")
+    print(list_posting_file)
 
-    stop = timeit.default_timer()
-    print('Time of parser: ', stop - start)
+    #print(f1.result().inverted_idx)
+    #print(f2.result().inverted_idx)
 
-    utils.save_obj(f1.result(), "posting1")
-    utils.save_obj(f2.result(), "posting2")"""
+    #stop = timeit.default_timer()
+    #print('Time of parser: ', stop - start)
+
+    #utils.save_obj(f1.result(), "posting1")
+    #utils.save_obj(f2.result(), "posting2")
     #print(f1.result())
     """print("******************************************************************")
     print("******************************************************************")
@@ -44,7 +58,7 @@ def run_engine():
 
 
     #print(documents_list)
-    start = timeit.default_timer()
+    """start = timeit.default_timer()
     # Iterate over every document in the file
     for idx, document in enumerate(documents_list):
         # parse the document
@@ -56,11 +70,12 @@ def run_engine():
     if indexer.number_of_term > 0:
         indexer.create_posting_text()
 
+
     mergeSort = ExternalMergeSort(indexer.posting_file)
     mergeSort.external_merge_sort()
     mergeSort.connect_pointer_to_term(indexer.inverted_idx)
     posting_file = mergeSort.get_posting_file()
-    print(posting_file)
+    print(posting_file)"""
     #print(indexer.postingDict)
     #print(indexer.posting_file)
 
@@ -70,36 +85,58 @@ def run_engine():
     #print(indexer.get_term_info("Donald Trump"))
     #print('Finished parsing and indexing. Starting to export files')
 
-    #utils.save_obj(indexer.inverted_idx, "inverted_idx")
-    #utils.save_obj(indexer.postingDict, "posting")
-    stop = timeit.default_timer()
-    print('Time of indexer : ', stop - start)
 
-def parse_index_doc(documents_list):
+    #stop = timeit.default_timer()
+    #print('Time of indexer : ', stop - start)
+
+def parse_index_doc(documents_list, num_thread):
     config = ConfigClass()
     p = Parse()
-    indexer = Indexer(config)
+    indexer = Indexer(config, num_thread)
     print("Number of tweets in the thread {}".format(len(documents_list)))
 
+    start = timeit.default_timer()
     # Iterate over every document in the file
     for idx, document in enumerate(documents_list):
         # parse the document
         parsed_document = p.parse_doc(document)
+        # number_of_documents += 1
         # index the document data
         indexer.add_new_doc(parsed_document)
-    # print(indexer.inverted_idx)
-    # print(indexer.postingDict)
+    if indexer.number_of_term > 0:
+        indexer.create_posting_text()
 
-    print('Finished parsing and indexing of thread. Starting to export files')
-    return indexer.postingDict
+    mergeSort = ExternalMergeSort(indexer.posting_file, num_thread)
+    mergeSort.external_merge_sort()
+    mergeSort.connect_pointer_to_term(indexer.inverted_idx)
+    posting_file = mergeSort.get_posting_file()
+    list_posting_file.append(posting_file)
+    #print(posting_file)
+    stop = timeit.default_timer()
+    print("Time of indexer and posting of thread {} : ".format(num_thread), stop - start)
+    return indexer
 
-def merge(*dict):
+def merge_inverted_index_dict(*dict):
     result_dict = {}
     for d in dict:
         for k, v in d.items():
             result_dict.setdefault(k, []).extend(v)
     #print(result_dict)
-    utils.save_obj(result_dict, "posting3")
+    return result_dict
+
+"""def final_merge():
+    with open("special_character_posting.txt", 'w') as file1,open("az.txt", 'w') as file2:
+        for file in list_posting_file:
+            with open(file) as post_file:
+                line = post_file.readline()
+                while line:
+                    # print(line.split(':')[0])
+                    line = file.readline()
+                    key = line.split(':')[0][:-1]
+                    if key in inverted_idx:
+                        inverted_idx[key][2] = "{} {}".format(self.posting_file[0], counter_line)
+                        # print(inverted_idx[key])
+                    counter_line += 1"""
 
 def load_index(name):
     print("Load 1")

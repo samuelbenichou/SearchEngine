@@ -27,7 +27,7 @@ class Parse:
         self.get_continuous_chunks(text_tokens)
         text_hashtags = self.parse_hashtags(text_tokens)
         text_tokens.extend(text_hashtags)
-        self.stop_words.extend(["#", '.',':','’',"'s",'?',',', 'https','”','“','...',"''",'!','•', '(', ')','',"n't",'…'])
+        self.stop_words.extend(["#", '.',':','’',"'s",'?',',', 'https','”','“','...',"''",'!','•', '(', ')','',"n't",'…','......','.....',''])
         # if "@" in text_tokens:
         #     self.parse_at(text_tokens)
         self.remove_emoji(text_tokens)
@@ -176,10 +176,7 @@ class Parse:
                 converted_number = self.convert_to_num(term.replace(',',''))
                 if i == len(text) - 1:
                     if 1000 <= converted_number < 1000000:
-                        if converted_number is range(1000,2021): # If represent a year
-                            text[i] = "{}".format(converted_number)
-                        else:
-                            text[i] = "{}K".format("%.3f" % (converted_number / 1000)) if not (converted_number / 1000).is_integer() else "{}K".format(int(converted_number / 1000))
+                        text[i] = "{}K".format("%.3f" % (converted_number / 1000)) if not (converted_number / 1000).is_integer() else "{}K".format(int(converted_number / 1000))
                     elif 1000000 <= converted_number < 1000000000:
                         text[i] = "{}M".format("%.3f" % (converted_number / 1000000)) if not (converted_number / 1000000).is_integer() else "{}M".format(int(converted_number / 1000000))
                     elif 1000000000 <= converted_number:
