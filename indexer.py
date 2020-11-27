@@ -25,7 +25,7 @@ class Indexer:
         unique_term = 0
         number_of_word = 0
         number_of_different_term = 0
-        create_posting_file = 30000
+        create_posting_file = 1000000
         """
         inverted_idx[term] = [ df , tf , pointer to the posting file ]
         postingDict[term] = [tweet_id, term appearance in tweet , [positional index of the term]] 

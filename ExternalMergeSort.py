@@ -18,7 +18,7 @@ class ExternalMergeSort:
         elif len(self.posting_file) == 2:
             #print(2)
             self.merge_doc(self.posting_file[0], self.posting_file[1])
-        else:
+        elif len(self.posting_file) > 2:
             #print(3)
             self.merge_doc(self.posting_file[0], self.posting_file[1])
             self.external_merge_sort()

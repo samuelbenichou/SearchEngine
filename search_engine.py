@@ -41,24 +41,32 @@ def process_index(documents_list, num_thread):
     start = timeit.default_timer()
     #print(documents_list)
     for doc in documents_list:
-        print(doc)
-        document_list = r.read_file(doc)
 
-        # Iterate over every document in the file
-        for idx, document in enumerate(document_list):
-            # parse the document
-            parsed_document = p.parse_doc(document)
-            number_of_documents += 1
-            # index the document data
-            indexer.add_new_doc(parsed_document)
-        if indexer.number_of_term > 0:
-            indexer.create_posting_text()
+        try:
+            print(doc)
+            document_list = r.read_file(doc)
 
-    mergeSort = ExternalMergeSort(indexer.posting_file, num_thread)
-    mergeSort.external_merge_sort()
-    mergeSort.connect_pointer_to_term(indexer.inverted_idx)
-    posting_file = mergeSort.get_posting_file()
-    list_posting_file.append(posting_file)
+            # Iterate over every document in the file
+            for idx, document in enumerate(document_list):
+                # parse the document
+                parsed_document = p.parse_doc(document)
+                number_of_documents += 1
+                # index the document data
+                indexer.add_new_doc(parsed_document)
+            if indexer.number_of_term > 0:
+                indexer.create_posting_text()
+        except:
+            print("Problem with process {}".format(num_thread))
+            print(traceback.print_exc())
+
+    try:
+        mergeSort = ExternalMergeSort(indexer.posting_file, num_thread)
+        mergeSort.external_merge_sort()
+        mergeSort.connect_pointer_to_term(indexer.inverted_idx)
+        posting_file = mergeSort.get_posting_file()
+        list_posting_file.append(posting_file)
+    except:
+        print(traceback.print_exc())
     # print(posting_file)
     stop = timeit.default_timer()
     print("Time of indexer and posting of process {} : ".format(num_thread), stop - start)

@@ -133,15 +133,17 @@ class Parse:
                 skip = False
                 continue
 
-            if token == '#' and '#'+tokens[i] in text:
-                self.hashtage(i,tokens,l)
-                skip = True;
-                continue
+            if token == '#':
+                if i < len(tokens):
+                    self.hashtage(i,tokens,l)
+                    skip = True;
+                    continue
 
-            if token == '@' and '@'+tokens[i] in text:
-                self.tag(i,tokens,l)
-                skip = True;
-                continue
+            if token == '@':
+                if i < len(tokens):
+                    self.tag(i,tokens,l)
+                    skip = True;
+                    continue
 
             if self.isNumber(token) and self.parse_percent(token, i, tokens, l):
                 skip = True;
