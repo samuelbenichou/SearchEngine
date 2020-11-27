@@ -24,11 +24,12 @@ class Indexer:
         most_recurrent_term = 0
         unique_term = 0
         number_of_word = 0
-        create_posting_file = 3000
+        number_of_different_term = 0
+        create_posting_file = 500000
         """
         inverted_idx[term] = [ df , tf , pointer to the posting file ]
         postingDict[term] = [tweet_id, term appearance in tweet , [positional index of the term]] 
-        tweet_index[tweet_id] = [max tf, number of words, number of unique words]
+        tweet_index[tweet_id] = [max tf, number of words, number of unique words, number of different term]
         We create a posting file every each certain amount of term
         """
         # Go over each term in the doc
@@ -59,6 +60,8 @@ class Indexer:
                 if self.number_of_term == create_posting_file:
                     self.create_posting_text()
 
+                number_of_different_term += 1
+
             except:
                 print('problem with the following key {}'.format(term[0]))
 
@@ -72,13 +75,13 @@ class Indexer:
             self.postingDict = {}  # delete the posting file
             self.number_of_term = 0"""
 
-        self.tweet_index[document.tweet_id] = (most_recurrent_term, number_of_word, unique_term)
+        self.tweet_index[document.tweet_id] = (most_recurrent_term, number_of_word, unique_term, number_of_different_term)
 
     def create_posting_text(self):
         p = Posting(self.postingDict, self.num_of_file)
         p.create_posting_file()
         self.posting_file.append(p.get_posting_path())
-        self.num_of_file += 3
+        self.num_of_file += 4
         #print(self.postingDict)
         self.postingDict = {}  # delete the posting file
         self.number_of_term = 0

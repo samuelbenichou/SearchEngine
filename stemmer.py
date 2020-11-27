@@ -17,7 +17,10 @@ class Stemmer:
         :param token: string of a token
         :return: stemmed token
         """
-        return self.stemmer.stem(token)
+        try:
+            return self.stemmer.stem(token)
+        except:
+            token
 
 if __name__ == '__main__':
     s = Stemmer()
