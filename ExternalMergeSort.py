@@ -62,7 +62,7 @@ class ExternalMergeSort:
 
             self.posting_file.append("postingMerge{}.txt".format(self.num_thread))
             self.merge_counter += 1
-            self.num_thread += 4
+            self.num_thread += 3
             #print(posting_file1)
             #print(posting_file2)
             self.posting_file.remove(posting_file2)

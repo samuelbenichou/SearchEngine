@@ -25,7 +25,7 @@ class Indexer:
         unique_term = 0
         number_of_word = 0
         number_of_different_term = 0
-        create_posting_file = 500000
+        create_posting_file = 30000
         """
         inverted_idx[term] = [ df , tf , pointer to the posting file ]
         postingDict[term] = [tweet_id, term appearance in tweet , [positional index of the term]] 
@@ -81,7 +81,7 @@ class Indexer:
         p = Posting(self.postingDict, self.num_of_file)
         p.create_posting_file()
         self.posting_file.append(p.get_posting_path())
-        self.num_of_file += 4
+        self.num_of_file += 3
         #print(self.postingDict)
         self.postingDict = {}  # delete the posting file
         self.number_of_term = 0

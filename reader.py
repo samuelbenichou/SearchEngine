@@ -1,32 +1,12 @@
 import os
 import pandas as pd
-from multiprocessing.dummy import Pool as ThreadPool
 import timeit
-from multiprocessing.pool import ThreadPool
-
 
 
 class ReadFile:
     def __init__(self, corpus_path):
         self.corpus_path = corpus_path
 
-    def read_corpus(self, corpus_path):
-        result = []
-        filenames = []
-        start = timeit.default_timer()
-        for root, dirs, files in os.walk(corpus_path):
-            for file in files:
-                if file.endswith(".parquet"):
-                    filenames.append(file)
-        pool = ThreadPool(5)
-        for file in filenames:
-            result.extend(pool.map(self.read_file, file))
-        #result.extend(pool.map(self.read_file, filenames))
-        pool.close()
-        pool.join()
-        stop = timeit.default_timer()
-        print('Time of reader: ', stop - start)
-        return result
 
     def get_filenames_path(self):
         """
@@ -49,10 +29,8 @@ class ReadFile:
         :return: a dataframe contains tweets.
         """
         full_path = os.path.join(self.corpus_path, file_name)
-        #print(full_path)
         df = pd.read_parquet(full_path, engine="pyarrow")
         value = df.values.tolist()
-        #print(value)
         return value
 
 

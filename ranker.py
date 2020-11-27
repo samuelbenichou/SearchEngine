@@ -80,14 +80,6 @@ class Ranker:
         #print(ranked_tweet)
         return ranked_tweet
 
-    # def tf(self, tweet, term):
-    #     return int(term)/int(tweet[0])
-    #
-    # def idf(self, term):
-    #     # print(self.number_of_tweet)
-    #     # print(self.df[term])
-    #     return log10(self.number_of_tweet/self.df[term])
-
 
 
 if __name__ == '__main__':
