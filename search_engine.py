@@ -62,17 +62,25 @@ def run_engine(corpus_path, output_path, stemming, queries, num_docs_to_retrieve
     # Get list of all parquets files
     r = ReadFile(corpus_path=config.get__corpusPath())
     filenames = r.get_filenames_path()
-    if len(filenames) > 3:
-        filenames = split_list_into_equal_sublist(config.get__corpusPath())
-        process1_list = filenames[0]
-        process2_list = filenames[1]
-        process3_list = filenames[2]
-    else:
-        # Split the list into three equal part
-        three_split = np.array_split(filenames, 3)
-        process1_list = list(three_split[0])
-        process2_list = list(three_split[1])
-        process3_list = list(three_split[2])
+    corpus = []
+    for file in filenames:
+        corpus.extend(r.read_file(file))
+
+    three_split = np.array_split(corpus, 3)
+    process1_list = list(three_split[0])
+    process2_list = list(three_split[1])
+    process3_list = list(three_split[2])
+    # if len(filenames) > 3:
+    #     filenames = split_list_into_equal_sublist(config.get__corpusPath())
+    #     process1_list = filenames[0]
+    #     process2_list = filenames[1]
+    #     process3_list = filenames[2]
+    # else:
+    #     # Split the list into three equal part
+    #     three_split = np.array_split(filenames, 3)
+    #     process1_list = list(three_split[0])
+    #     process2_list = list(three_split[1])
+    #     process3_list = list(three_split[2])
 
     print(filenames)
 
@@ -90,49 +98,50 @@ def run_engine(corpus_path, output_path, stemming, queries, num_docs_to_retrieve
     print(list_posting_file)
     print(list_inverted_index_file)
     print(list_tweet_file)
+    print(number_of_tweet)
 
     # if os.path.isfile(queries):  # If the queries are stored in a file
     #     with open(queries, encoding="utf8") as file:
     #         queries = file.readlines()
 
-    p = Parse(config.toStem)
-    tweet_file = merge_inverted_index_dict(list_tweet_file[0], list_tweet_file[1], list_tweet_file[2])
-    inverted_index = merge_inverted_index_dict(list_inverted_index_file[0], list_inverted_index_file[1], list_inverted_index_file[2])
-    if type(queries) != list:
-        with open(queries, encoding="utf8") as file:
-            queries = file.readlines()
-    resultGloVe = pd.DataFrame(columns=['Query_num', 'Tweet_id', 'Rank' , 'Score'])
-    resultWOrd2Vec = pd.DataFrame(columns=['Query_num', 'Tweet_id', 'Rank'])
-    counter = 1
-    rank = 1
-    rank1 = 1
-    for query in queries:
-        if query != '\n':
-            searcher = Searcher(inverted_index)
-            searcher1 = Searcher(inverted_index)
-            query_as_list = p.parse_sentence(query)
-            relevant_docs, term_in_query = searcher.relevant_docs_from_posting(query_as_list)
-            relevant_docs1, term_in_query1 = searcher1.relevant_docs_from_posting_with_word2Vec(query_as_list)
-            ranked_docs = searcher.ranker.rank_relevant_doc(relevant_docs, number_of_tweet, tweet_file, term_in_query)  # number_of_tweet
-            ranked_docs1 = searcher1.ranker.rank_relevant_doc(relevant_docs1, number_of_tweet, tweet_file,term_in_query1)  # number_of_tweet
-            ranked_tweets = searcher.ranker.retrieve_top_k(ranked_docs, num_docs_to_retrieve)
-            ranked_tweets1 = searcher1.ranker.retrieve_top_k(ranked_docs1, num_docs_to_retrieve)
-            print(ranked_tweets)
-            for doc_tuple in ranked_tweets:
-                #resultGloVe = resultGloVe.append({"Query_num":counter , "Tweet_id": doc_tuple[0], "Rank": rank, "Score": doc_tuple[1]},ignore_index=True)
-                print("Tweet id: {} Score: {}".format(doc_tuple[0], doc_tuple[1]))
-                rank += 1
-            print(ranked_tweets1)
-            # for doc in ranked_tweets1:
-            #     #resultWOrd2Vec = resultWOrd2Vec.append({"Query_num":counter , "Tweet_id": doc[0], "Rank": rank1, "Score": doc[1]},ignore_index=True)
-            #     print("Tweet id: {} Score: {}".format(doc[0], doc[1]))
-            #     rank1 += 1
-            counter += 1
-    # resultGloVe.to_csv(os.path.join(output_path, "resultsGloVe.csv"))
-    # resultWOrd2Vec.to_csv(os.path.join(output_path, "resultsWord2Vec.csv"))
+    # p = Parse(config.toStem)
+    # tweet_file = merge_inverted_index_dict(list_tweet_file[0], list_tweet_file[1], list_tweet_file[2])
+    # inverted_index = merge_inverted_index_dict(list_inverted_index_file[0], list_inverted_index_file[1], list_inverted_index_file[2])
+    # if type(queries) != list:
+    #     with open(queries, encoding="utf8") as file:
+    #         queries = file.readlines()
+    # resultGloVe = pd.DataFrame(columns=['Query_num', 'Tweet_id', 'Rank' , 'Score'])
+    # resultWOrd2Vec = pd.DataFrame(columns=['Query_num', 'Tweet_id', 'Rank'])
+    # counter = 1
+    # rank = 1
+    # rank1 = 1
+    # for query in queries:
+    #     if query != '\n':
+    #         searcher = Searcher(inverted_index)
+    #         #searcher1 = Searcher(inverted_index)
+    #         query_as_list = p.parse_sentence(query)
+    #         relevant_docs, term_in_query = searcher.relevant_docs_from_posting(query_as_list)
+    #         #relevant_docs1, term_in_query1 = searcher1.relevant_docs_from_posting_with_word2Vec(query_as_list)
+    #         ranked_docs = searcher.ranker.rank_relevant_doc(relevant_docs, number_of_tweet, tweet_file, term_in_query)  # number_of_tweet
+    #         #ranked_docs1 = searcher1.ranker.rank_relevant_doc(relevant_docs1, number_of_tweet, tweet_file,term_in_query1)  # number_of_tweet
+    #         ranked_tweets = searcher.ranker.retrieve_top_k(ranked_docs, num_docs_to_retrieve)
+    #         #ranked_tweets1 = searcher1.ranker.retrieve_top_k(ranked_docs1, num_docs_to_retrieve)
+    #         print(ranked_tweets)
+    #         for doc_tuple in ranked_tweets:
+    #             #resultGloVe = resultGloVe.append({"Query_num":counter , "Tweet_id": doc_tuple[0], "Rank": rank, "Score": doc_tuple[1]},ignore_index=True)
+    #             print("Tweet id: {} Score: {}".format(doc_tuple[0], doc_tuple[1]))
+    #             rank += 1
+    #         #print(ranked_tweets1)
+    #         # for doc in ranked_tweets1:
+    #         #     #resultWOrd2Vec = resultWOrd2Vec.append({"Query_num":counter , "Tweet_id": doc[0], "Rank": rank1, "Score": doc[1]},ignore_index=True)
+    #         #     print("Tweet id: {} Score: {}".format(doc[0], doc[1]))
+    #         #     rank1 += 1
+    #         counter += 1
+    # # resultGloVe.to_csv(os.path.join(output_path, "resultsGloVe.csv"))
+    # # resultWOrd2Vec.to_csv(os.path.join(output_path, "resultsWord2Vec.csv"))
 
     #print(resultGloVe)
-    return resultGloVe
+    #return resultGloVe
 
 
 
@@ -143,67 +152,125 @@ def process_index(documents_list, num_thread, corpus_path, output_path, stemming
     config.toStem = stemming
     p = Parse(config.toStem)
     indexer = Indexer(config, num_thread)
-    print("Number of doc in the process {} : {}".format(num_thread,len(documents_list)))
-    r = ReadFile(corpus_path=config.get__corpusPath())
+    print("Number of tweet in the process {} : {}".format(num_thread,len(documents_list)))
     number_of_documents = 0
     start = timeit.default_timer()
-    #print(documents_list)
-    if len(documents_list) > 0:
-        for doc in documents_list:
-            try:
-                print(doc)
-                document_list = r.read_file(doc)
-                # Iterate over every document in the file
-                for idx, document in enumerate(document_list):
-                    # parse the document
-                    parsed_document = p.parse_doc(document)
-                    number_of_documents += 1
-                    # index the document data
-                    indexer.add_new_doc(parsed_document)
+    try:
 
-            except:
-                print("Problem with process {}".format(num_thread))
-                print(traceback.print_exc())
+        # Iterate over every document in the file
+        for idx, document in enumerate(documents_list):
+            # parse the document
+            parsed_document = p.parse_doc(document)
+            number_of_documents += 1
+            # index the document data
+            indexer.add_new_doc(parsed_document)
+    except:
+        print("Problem with process {}".format(num_thread))
+        print(traceback.print_exc())
 
-        if indexer.number_of_term > 0: # create a new files in we didnt reach a certain amouts of tweets
-            indexer.create_posting_text()
-            indexer.create_inverted_index()
-            indexer.create_tweet_index()
-            indexer.postingDict = {} # delete the posting file
-            indexer.inverted_idx = {} # delete the inverted index file
-            indexer.tweet_index = {} # delete the tweet index file
+    if indexer.number_of_term > 0: # create a new files in we didnt reach a certain amouts of tweets
+        indexer.create_posting_text()
+        indexer.create_inverted_index()
+        indexer.create_tweet_index()
+        indexer.postingDict = {} # delete the posting file
+        indexer.inverted_idx = {} # delete the inverted index file
+        indexer.tweet_index = {} # delete the tweet index file
 
-        try:
-            mergeSort = ExternalMergeSort(indexer.posting_file, indexer.inverted_idx_file, indexer.tweet_index_file, num_thread)
-            # print(indexer.posting_file)
-            # print(indexer.inverted_idx_file)
-            # print(indexer.tweet_index_file)
-            mergeSort.external_merge_sort() # merge the posting file
-            mergeSort.external_inverted_index_merge() # merge the inverted index file
-            mergeSort.external_tweet_index_merge() # merge the tweet index file
-            # print(mergeSort.inverted_idx_file)
-            # print(mergeSort.posting_file)
-            # print(mergeSort.tweet_index_file)
-            # inverted_index = load_inverted_index(mergeSort.inverted_idx_file[0])
-            # inverted_index_with_pointer = mergeSort.connect_pointer_to_term(inverted_index)
-            mergeSort.update_pointer()
-            inverted_index_file = mergeSort.get_inverted_index_file()
-            # list_inverted_index_file.append(inverted_index_file)
-            #print(list_inverted_index_file)
-            posting_file = mergeSort.get_posting_file()
-            # list_posting_file.append(posting_file)
-            #print(list_posting_file)
-            tweet_file = mergeSort.get_tweet_file()
-            # list_tweet_file.append(tweet_file)
-            #print(list_tweet_file)
-            result = [posting_file, inverted_index_file, tweet_file, number_of_documents]
-            stop = timeit.default_timer()
-            print("Time of indexer and posting of process {} : ".format(num_thread), stop - start)
-            return result
-        except:
-            print(traceback.print_exc())
-    else:
-        return [None, None, None, 0]
+    try:
+        mergeSort = ExternalMergeSort(indexer.posting_file, indexer.inverted_idx_file, indexer.tweet_index_file,
+                                      num_thread)
+        # print(indexer.posting_file)
+        # print(indexer.inverted_idx_file)
+        # print(indexer.tweet_index_file)
+        mergeSort.external_merge_sort()  # merge the posting file
+        mergeSort.external_inverted_index_merge()  # merge the inverted index file
+        mergeSort.external_tweet_index_merge()  # merge the tweet index file
+        # print(mergeSort.inverted_idx_file)
+        # print(mergeSort.posting_file)
+        # print(mergeSort.tweet_index_file)
+        # inverted_index = load_inverted_index(mergeSort.inverted_idx_file[0])
+        # inverted_index_with_pointer = mergeSort.connect_pointer_to_term(inverted_index)
+        mergeSort.update_pointer()
+        inverted_index_file = mergeSort.get_inverted_index_file()
+        # list_inverted_index_file.append(inverted_index_file)
+        # print(list_inverted_index_file)
+        posting_file = mergeSort.get_posting_file()
+        # list_posting_file.append(posting_file)
+        # print(list_posting_file)
+        tweet_file = mergeSort.get_tweet_file()
+        # list_tweet_file.append(tweet_file)
+        # print(list_tweet_file)
+        result = [posting_file, inverted_index_file, tweet_file, number_of_documents]
+        stop = timeit.default_timer()
+        print("Time of indexer and posting of process {} : ".format(num_thread), stop - start)
+        return result
+    except:
+        print(traceback.print_exc())
+
+
+
+
+
+    # r = ReadFile(corpus_path=config.get__corpusPath())
+    # number_of_documents = 0
+    # start = timeit.default_timer()
+    # #print(documents_list)
+    # if len(documents_list) > 0:
+    #     for doc in documents_list:
+    #         try:
+    #             print(doc)
+    #             document_list = r.read_file(doc)
+    #             # Iterate over every document in the file
+    #             for idx, document in enumerate(document_list):
+    #                 # parse the document
+    #                 parsed_document = p.parse_doc(document)
+    #                 number_of_documents += 1
+    #                 # index the document data
+    #                 indexer.add_new_doc(parsed_document)
+    #
+    #         except:
+    #             print("Problem with process {}".format(num_thread))
+    #             print(traceback.print_exc())
+    #
+    #     if indexer.number_of_term > 0: # create a new files in we didnt reach a certain amouts of tweets
+    #         indexer.create_posting_text()
+    #         indexer.create_inverted_index()
+    #         indexer.create_tweet_index()
+    #         indexer.postingDict = {} # delete the posting file
+    #         indexer.inverted_idx = {} # delete the inverted index file
+    #         indexer.tweet_index = {} # delete the tweet index file
+    #
+    #     try:
+    #         mergeSort = ExternalMergeSort(indexer.posting_file, indexer.inverted_idx_file, indexer.tweet_index_file, num_thread)
+    #         # print(indexer.posting_file)
+    #         # print(indexer.inverted_idx_file)
+    #         # print(indexer.tweet_index_file)
+    #         mergeSort.external_merge_sort() # merge the posting file
+    #         mergeSort.external_inverted_index_merge() # merge the inverted index file
+    #         mergeSort.external_tweet_index_merge() # merge the tweet index file
+    #         # print(mergeSort.inverted_idx_file)
+    #         # print(mergeSort.posting_file)
+    #         # print(mergeSort.tweet_index_file)
+    #         # inverted_index = load_inverted_index(mergeSort.inverted_idx_file[0])
+    #         # inverted_index_with_pointer = mergeSort.connect_pointer_to_term(inverted_index)
+    #         mergeSort.update_pointer()
+    #         inverted_index_file = mergeSort.get_inverted_index_file()
+    #         # list_inverted_index_file.append(inverted_index_file)
+    #         #print(list_inverted_index_file)
+    #         posting_file = mergeSort.get_posting_file()
+    #         # list_posting_file.append(posting_file)
+    #         #print(list_posting_file)
+    #         tweet_file = mergeSort.get_tweet_file()
+    #         # list_tweet_file.append(tweet_file)
+    #         #print(list_tweet_file)
+    #         result = [posting_file, inverted_index_file, tweet_file, number_of_documents]
+    #         stop = timeit.default_timer()
+    #         print("Time of indexer and posting of process {} : ".format(num_thread), stop - start)
+    #         return result
+    #     except:
+    #         print(traceback.print_exc())
+    # else:
+    #     return [None, None, None, 0]
 
 
 def load_inverted_index(inverted_index):

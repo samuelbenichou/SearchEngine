@@ -24,15 +24,15 @@ def load_obj(name):
         return pickle.load(f)
 
 
-def load_inverted_index(path):
-    with open("path/invertedIndex.json", encoding="cp437", errors='ignore') as file1:
-        return json.load(file1)
-
-
-def create_invertex_index(path):
-    try:
-        with open("invertedIndex.json", "w", encoding="cp437", errors='ignore') as fp:
-            #json.dump(self.tweet_index, fp)
-            print()
-    except:
-        print(traceback.print_exc())
+# def load_inverted_index(path):
+#     with open("path/invertedIndex.json", encoding="cp437", errors='ignore') as file1:
+#         return json.load(file1)
+#
+#
+# def create_invertex_index(path):
+#     try:
+#         with open("invertedIndex.json", "w", encoding="cp437", errors='ignore') as fp:
+#             #json.dump(self.tweet_index, fp)
+#             print()
+#     except:
+#         print(traceback.print_exc())

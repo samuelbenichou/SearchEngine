@@ -26,8 +26,14 @@ class Searcher:
         """
         glove = GloVeMethod('glove.twitter.27B.25d.txt')
         similar_words = glove.most_similar(query)
-        query.extend(similar_words)
+        #print(similar_words)
+        for word in similar_words:
+            # print(word)
+            # print(word[0])
+            query.append(word[0])
+        # query.extend(similar_words)
         term_in_query = {}
+        #print(query)
         for term in query:
             try:
                 if term in self.inverted_index:
@@ -44,7 +50,7 @@ class Searcher:
                 print('term {} not found in posting'.format(term))
 
         #print(self.relevant_docs)
-        print(term_in_query)
+        #print(term_in_query)
         return self.relevant_docs, term_in_query
 
     def relevant_docs_from_posting_with_word2Vec(self, query): # list of word after parsing
