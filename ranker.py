@@ -10,7 +10,7 @@ class Ranker:
         pass
 
     @staticmethod
-    def rank_relevant_doc(relevant_doc, number_of_tweet):
+    def rank_relevant_doc(relevant_doc, number_of_tweet, tweet_file, term_in_query):
         """
         This function provides rank for each relevant document and sorts them by their scores.
         The current score considers solely the number of terms shared by the tweet (full_text) and query.
@@ -19,6 +19,7 @@ class Ranker:
         """
         tweet_id = {}
         df = {}
+        # dic = {'COVID19 ': [('1280966292908974083', 1, [15]), ('1280966293588344832', 1, [25]), ('1280966294624403461', 1, [13]),
         #print(relevant_doc)
         #r = Ranker(number_of_tweet)
         for term in relevant_doc.keys():
@@ -30,7 +31,7 @@ class Ranker:
                     tweet_id[data[0]].append([term, data[1], data[2]])
 
         #print(tweet_id)
-        ranked_tweet = Ranker.cosSim(tweet_id, df, number_of_tweet)
+        ranked_tweet = Ranker.cosSim(tweet_id, df, number_of_tweet, tweet_file, term_in_query)
         #print(ranked_tweet)
         return sorted(ranked_tweet.items(), key=lambda item: item[1], reverse=True)
 
@@ -45,16 +46,18 @@ class Ranker:
         :return: list of relevant document
         """
         #print(sorted_relevant_doc[:k])
-        result = [i[0] for i in sorted_relevant_doc[:k]]
+        #result = [i[0] for i in sorted_relevant_doc[:k]]
+        result = [i for i in sorted_relevant_doc[:k]]
         return result
 
     @staticmethod
-    def cosSim(tweet_id, df, number_of_tweet):
+    def cosSim(tweet_id, df, number_of_tweet, tweet_file, term_in_query):
         ranked_tweet = {}
-        tweet_file = utils.load_obj('tweet_index')
+        #tweet_file = utils.load_obj('tweet_index')
         #inverted_index = utils.load_obj('inverted_index')
         #print(inverted_index)
         #print(inverted_index['COVID19'])
+        print("term query : {}".format(term_in_query))
         for id in tweet_id.keys():
             tweet_data = tweet_id[id]
             for data in tweet_data:
@@ -69,15 +72,20 @@ class Ranker:
                         # print(inverted_index[data[0][:-1]])
                         # print(tweet_file[id])
                     #ranked_tweet[id] = self.tf(tweet_file[id], data[1])*self.idf(data[0])
-                    ranked_tweet[id] = int(data[1])/int(tweet_file[id][0]) * log10(number_of_tweet/df[data[0]])
+                    ranked_tweet[id] = int(data[1])/int(tweet_file[id][0]) * log10(number_of_tweet/df[data[0]]) * term_in_query[data[0][:-1]]
                 else:
                     #if id == '1280966287972237314':
                         # print(self.tf(tweet_file[id], data[1])*self.idf(data[0]))
                         # print(inverted_index[data[0][:-1]])
                         # print(tweet_file[id])
                     #ranked_tweet[id] += self.tf(tweet_file[id], data[1])*self.idf(data[0])
-                    ranked_tweet[id] += int(data[1])/int(tweet_file[id][0]) * log10(number_of_tweet/df[data[0]])
-        #print(ranked_tweet)
+                    ranked_tweet[id] += int(data[1])/int(tweet_file[id][0]) * log10(number_of_tweet/df[data[0]]) * term_in_query[data[0][:-1]]
+        Wiq = 0
+        for term in term_in_query.keys():
+            Wiq += term_in_query[term]*term_in_query[term]
+        #print(Wiq)
+        for id in ranked_tweet.keys():
+            ranked_tweet[id] /= sqrt(Wiq*tweet_file[id][1]*tweet_file[id][1])
         return ranked_tweet
 
 

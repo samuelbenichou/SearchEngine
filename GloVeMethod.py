@@ -10,7 +10,6 @@ class GloVeMethod:
         self.word2vec_output_file = 'glove.twitter.27B.25d.txt.word2vec'
         glove2word2vec(glove_input_file, self.word2vec_output_file)
 
-
     def get_filename(self):
         filename = '../../../../glove.twitter.27B.25d.txt'
 
@@ -32,7 +31,6 @@ class GloVeMethod:
         #print(model.most_similar(query))
         #print(model.most_similar(query)[0])
         #print(model.most_similar(query)[0][0])
-
 
 if __name__ == '__main__':
     #g = GloVeMethod('glove.twitter.27B.25d.txt')

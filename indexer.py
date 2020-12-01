@@ -1,4 +1,8 @@
 from posting import Posting
+import json
+from io import BytesIO
+from gzip import GzipFile
+import traceback
 
 class Indexer:
 
@@ -9,6 +13,8 @@ class Indexer:
         self.tweet_index = {}
         self.config = config
         self.posting_file = []
+        self.inverted_idx_file = []
+        self.tweet_index_file = []
         self.number_of_term = 0
         self.num_of_file = num_thread
 
@@ -59,6 +65,13 @@ class Indexer:
 
                 if self.number_of_term == create_posting_file:
                     self.create_posting_text()
+                    self.create_inverted_index()
+                    self.create_tweet_index()
+                    self.num_of_file += 3
+                    self.postingDict = {}  # delete the posting file
+                    self.inverted_idx = {}
+                    self.tweet_index = {}
+                    self.number_of_term = 0
 
                 number_of_different_term += 1
 
@@ -81,10 +94,26 @@ class Indexer:
         p = Posting(self.postingDict, self.num_of_file)
         p.create_posting_file()
         self.posting_file.append(p.get_posting_path())
-        self.num_of_file += 3
+        # self.num_of_file += 3
         #print(self.postingDict)
-        self.postingDict = {}  # delete the posting file
-        self.number_of_term = 0
+        # self.postingDict = {}  # delete the posting file
+        # self.number_of_term = 0
+
+    def create_inverted_index(self):
+        try:
+            with open("inverted_index{}.json".format(self.num_of_file), "w", encoding="cp437",errors='ignore') as fp:
+                json.dump(self.inverted_idx, fp)
+                self.inverted_idx_file.append("inverted_index{}.json".format(self.num_of_file))
+        except:
+            print(traceback.print_exc())
+
+    def create_tweet_index(self):
+        try:
+            with open("tweet_index{}.json".format(self.num_of_file), "w", encoding="cp437",errors='ignore') as fp:
+                json.dump(self.tweet_index, fp)
+                self.tweet_index_file.append("tweet_index{}.json".format(self.num_of_file))
+        except:
+            print(traceback.print_exc())
 
 
     def get_tweet_info(self, tweet_id):
@@ -99,3 +128,5 @@ class Indexer:
         print("df : {}".format(len(self.postingDict.get(term))))
         print("term frequency : {}".format(self.inverted_idx.get(term)))
         print("******")
+
+

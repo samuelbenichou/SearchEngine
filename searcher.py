@@ -4,6 +4,7 @@ import utils
 from GloVeMethod import GloVeMethod
 import linecache
 from stemmer import Stemmer
+from Word2Vec import Word2VecScrapper
 
 class Searcher:
 
@@ -23,24 +24,64 @@ class Searcher:
         :param query: query
         :return: dictionary of relevant documents.
         """
-        inverted_index = utils.load_obj(self.inverted_index)
         glove = GloVeMethod('glove.twitter.27B.25d.txt')
         similar_words = glove.most_similar(query)
         query.extend(similar_words)
-        #query.extend(self.add_hashtag(query))
+        term_in_query = {}
         for term in query:
             try:
-                if term in inverted_index:
-                    self.get_file_from_pointer(inverted_index[term])
-                elif self.stemmer.stem_term(term) in inverted_index:
-                    self.get_file_from_pointer(inverted_index[self.stemmer.stem_term(term)])
+                if term in self.inverted_index:
+                    self.get_file_from_pointer(self.inverted_index[term])
+                elif self.stemmer.stem_term(term) in self.inverted_index:
+                    self.get_file_from_pointer(self.inverted_index[self.stemmer.stem_term(term)])
+
+                if term not in term_in_query.keys():
+                    term_in_query[term] = 1
                 else:
-                    continue
+                    term_in_query[term] += 1
+
             except:
                 print('term {} not found in posting'.format(term))
 
         #print(self.relevant_docs)
-        return self.relevant_docs
+        print(term_in_query)
+        return self.relevant_docs, term_in_query
+
+    def relevant_docs_from_posting_with_word2Vec(self, query): # list of word after parsing
+        """
+        This function loads the posting list and count the amount of relevant documents per term.
+        :param query: query
+        :return: dictionary of relevant documents.
+        """
+        w2v = Word2VecScrapper()
+        word_dict = w2v.get_top_n_dictionary(query)
+        similar_words = []
+        print(word_dict)
+        if word_dict is not None:
+            for word in word_dict.keys():
+                if word_dict[word] is not None:
+                    similar_words.extend(word_dict[word])
+
+        query.extend(similar_words)
+        term_in_query = {}
+        for term in query:
+            try:
+                if term in self.inverted_index:
+                    self.get_file_from_pointer(self.inverted_index[term])
+                elif self.stemmer.stem_term(term) in self.inverted_index:
+                    self.get_file_from_pointer(self.inverted_index[self.stemmer.stem_term(term)])
+
+                if term not in term_in_query.keys():
+                    term_in_query[term] = 1
+                else:
+                    term_in_query[term] += 1
+
+            except:
+                print('term {} not found in posting'.format(term))
+
+        #print(self.relevant_docs)
+        print(term_in_query)
+        return self.relevant_docs, term_in_query
 
     def get_file_from_pointer(self, list_inverted_index):
         if len(list_inverted_index) == 3:
@@ -71,7 +112,6 @@ class Searcher:
     def add_hashtag(self, query):
         result = ["#{}".format(term) for term in query]
         return result
-
 
 
 

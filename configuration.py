@@ -1,3 +1,5 @@
+import os
+
 class ConfigClass:
     def __init__(self):
         self.corpusPath = '/Users/samuel/Desktop/Test'
@@ -10,3 +12,4 @@ class ConfigClass:
 
     def get__corpusPath(self):
         return self.corpusPath
+

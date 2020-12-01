@@ -14,7 +14,7 @@ class Posting:
 
     def create_posting_file(self):
         try:
-            with open(self.path, 'a') as f:
+            with open(self.path, 'a', encoding="cp437",errors='ignore') as f:
                 for key, value in sorted(self.postingDict.items()):
                     # print(key)
                     # print(value)
@@ -23,6 +23,7 @@ class Posting:
                 # f.write("string_output")
         except:
             print('problem with the following key sammm {}'.format(key))
+            print(traceback.print_exc())
 
     def sort_by_id(self, value):
         return value[0]
