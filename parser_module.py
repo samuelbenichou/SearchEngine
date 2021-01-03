@@ -6,6 +6,7 @@ from stemmer import Stemmer
 from nltk import ne_chunk, pos_tag
 from nltk.tree import Tree
 import flag
+from reader import ReadFile
 
 symbols = ['+', '-', '*', '=', '/', '//', '#', '.', ',', ':', '!', '?', '•', '|', '||', '~', '$', '%','&',
         '(', ')', '{', '}', '[', ']',
@@ -143,11 +144,8 @@ def parse_number(clear_number, size=''):
         return str(num_format(num))
 
 class Parse:
-    def __init__(self, stemming=False):
-        temp=0
+    def __init__(self):
         self.stemming = None
-        if stemming:
-            self.stemming = Stemmer()
 
     def parse_sentence(self, text):
         l = []
@@ -210,7 +208,9 @@ class Parse:
         quote_text = doc_as_list[6]
         quote_url = doc_as_list[7]
         term_dict = {}
+        #print(full_text)
         tokenized_text = self.parse_sentence(full_text)
+        #print(tokenized_text)
         doc_length = len(tokenized_text)
 
         for i, term in enumerate(tokenized_text):
@@ -228,4 +228,11 @@ class Parse:
 
 
 if __name__ == '__main__':
+
     p = Parse()
+    r = ReadFile("")
+    text = r.read_file("sample2.parquet")
+    for t in text:
+        print(t[2])
+        p.parse_doc(t)
+

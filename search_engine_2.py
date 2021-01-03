@@ -1,27 +1,43 @@
+from search_engine_interface import search_engine_interface
+from searcher import Searcher
+from configuration import ConfigClass
+import utils
 import requests
 import time
 
+class search_engine_2(search_engine_interface):
 
-class Word2VecScrapper(object):
-
-    def __init__(self, ):
+    def __init__(self):
+        super().__init__()
         self.url = "http://bionlp-www.utu.fi/wv_demo/nearest"
         self.data = {'form[1][name]': 'topn', 'form[0][name]': 'word', 'model_name': "English GoogleNews Negative300", }
         self.local_cache = {}
 
-    def get_top_n_dictionary(self, word_list_input, n=3):
-        ret_dict = {}
+    def search(self, query):
+        query_as_list = self.parser.parse_sentence(query)
+        query_expansion = self.query_expansion(query_as_list)
+        self.add_similar_word_to_query(query_as_list, query_expansion)
+        searcher = Searcher(self.parser, self.indexer, model=self.model)
+        n_relevant, ranked_doc_ids = searcher.search(query_as_list, 5)
+        print(ranked_doc_ids)
 
-        for word in word_list_input:
+    def add_similar_word_to_query(self, query_as_list, query_expansion):
+        for word in query_expansion.keys():
+            if query_expansion[word] is not None:
+                query_as_list.extend(query_expansion[word])
+
+    def query_expansion(self, query_as_list):
+        ret_dict = {}
+        for word in query_as_list:
             if word in self.local_cache:
                 ret_dict[word] = self.local_cache[word]
             else:
-                ret_dict[word] = self.get_top_n(word, n)
+                ret_dict[word] = self.get_top_n(word)
 
         return ret_dict
 
-    def get_top_n(self, word, n=3):
-        self.data['form[1][value]'] = str(n)
+    def get_top_n(self, word):
+        self.data['form[1][value]'] = str(3)
         self.data['form[0][value]'] = word
 
         if word in self.local_cache:
@@ -47,13 +63,7 @@ class Word2VecScrapper(object):
         self.local_cache[word] = response_text
         return response_text
 
-
 if __name__ == "__main__":
-    start_time = time.time()  # starting time
-
-    w2v = Word2VecScrapper()
-    word_dict = w2v.get_top_n_dictionary(
-        [ "information"])
-    print(word_dict)
-    elapsed_time = time.time() - start_time
-    print(time.strftime("%H:%M:%S", time.gmtime(elapsed_time)))
+    s = search_engine_2()
+    s.build_index_from_parquet("/Users/samuel/Desktop/Corpus/test")
+    s.search("Coronavirus is less dangerous than the flu")

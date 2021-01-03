@@ -1,16 +1,67 @@
-import utils
 from math import sqrt
-from math import log2
 from math import log10
+import numpy as np
 
 
 class Ranker:
 
     def __init__(self):
-        pass
+        # FREE PARAMETERS
+        self.B = 0.75
+        self.K = 1.2
+
+    # you can change whatever you want in this module, just make sure it doesn't
+    # break the searcher module
+    @staticmethod
+    def rank_relevant_docs(relevant_docs, k=None):
+        """
+        This function provides rank for each relevant document and sorts them by their scores.
+        The current score considers solely the number of terms shared by the tweet (full_text) and query.
+        :param k: number of most relevant docs to return, default to everything.
+        :param relevant_docs: dictionary of documents that contains at least one term from the query.
+        :return: sorted list of documents by score
+        """
+        ranked_results = sorted(relevant_docs.items(), key=lambda item: item[1], reverse=True)
+        if k is not None:
+            ranked_results = ranked_results[:k]
+        return [d[0] for d in ranked_results]
+
+    def BM25(self, relevant_docs, query, posting_dic, tweet_index):
+        """
+        Calculate the score for each document according to the Okapi BM25
+        """
+        document_score = {}
+        N = len(tweet_index)
+        avg_field_len = self.total_len(relevant_docs, tweet_index)/N
+        for document in relevant_docs.keys():
+            score = 0
+            for term in query:
+                if document in posting_dic[term].keys():
+                    f = posting_dic[term][document]
+                    field_len = tweet_index[document][1]
+                    score += self.IDF(posting_dic, term, N) * ((self.K+1)*f)/(f+self.K*(1-self.B+self.B*(field_len/avg_field_len)))
+            document_score[document] = score
+        return document_score
+
+    def IDF(self, posting_dic, term, N):
+        """
+        Return the Inverse document frequency weight of the query term
+        """
+        idf = np.log(((N - len(posting_dic[term]) + 0.5)/(len(posting_dic[term]) + 0.5)) + 1)
+        return idf
+
+    def total_len(self, relevant_docs, tweet_index):
+        """
+        Return the total document lenght in the text collection from which documents are drawn
+        """
+        total = 0
+        for doc, value in relevant_docs.items():
+            total += tweet_index[doc][1]
+        return total
+
 
     @staticmethod
-    def rank_relevant_doc(relevant_doc, number_of_tweet, tweet_file, term_in_query):
+    def _rank_relevant_doc(relevant_doc, number_of_tweet, tweet_file, term_in_query):
         """
         This function provides rank for each relevant document and sorts them by their scores.
         The current score considers solely the number of terms shared by the tweet (full_text) and query.
@@ -19,9 +70,7 @@ class Ranker:
         """
         tweet_id = {}
         df = {}
-        # dic = {'COVID19 ': [('1280966292908974083', 1, [15]), ('1280966293588344832', 1, [25]), ('1280966294624403461', 1, [13]),
-        #print(relevant_doc)
-        #r = Ranker(number_of_tweet)
+
         for term in relevant_doc.keys():
             df[term] = len(relevant_doc[term])
             for data in relevant_doc[term]:
@@ -45,8 +94,8 @@ class Ranker:
         :param k: Number of top document to return
         :return: list of relevant document
         """
-        #print(sorted_relevant_doc[:k])
-        #result = [i[0] for i in sorted_relevant_doc[:k]]
+        if k > len(sorted_relevant_doc):
+            return sorted_relevant_doc
         result = [i for i in sorted_relevant_doc[:k]]
         return result
 
@@ -57,7 +106,7 @@ class Ranker:
         #inverted_index = utils.load_obj('inverted_index')
         #print(inverted_index)
         #print(inverted_index['COVID19'])
-        print("term query : {}".format(term_in_query))
+        #print("term query : {}".format(term_in_query))
         for id in tweet_id.keys():
             tweet_data = tweet_id[id]
             for data in tweet_data:
@@ -72,14 +121,31 @@ class Ranker:
                         # print(inverted_index[data[0][:-1]])
                         # print(tweet_file[id])
                     #ranked_tweet[id] = self.tf(tweet_file[id], data[1])*self.idf(data[0])
-                    ranked_tweet[id] = int(data[1])/int(tweet_file[id][0]) * log10(number_of_tweet/df[data[0]]) * term_in_query[data[0][:-1]]
+                    # print(id)
+                    # print(data[1])
+                    # print(tweet_file[id])
+                    # print(df[data[0]])
+                    # print(term_in_query[data[0][:-1]])
+                    try:
+                        ranked_tweet[id] = int(data[1])/int(tweet_file[id][0]) * log10(number_of_tweet/df[data[0]]) * term_in_query[data[0][:-1]]
+                    except:
+                        ranked_tweet[id] = int(data[1]) / int(tweet_file[id][0]) * log10(number_of_tweet / df[data[0]])
                 else:
                     #if id == '1280966287972237314':
                         # print(self.tf(tweet_file[id], data[1])*self.idf(data[0]))
                         # print(inverted_index[data[0][:-1]])
                         # print(tweet_file[id])
                     #ranked_tweet[id] += self.tf(tweet_file[id], data[1])*self.idf(data[0])
-                    ranked_tweet[id] += int(data[1])/int(tweet_file[id][0]) * log10(number_of_tweet/df[data[0]]) * term_in_query[data[0][:-1]]
+                    # print(id)
+                    # print(data[1])
+                    # print(tweet_file[id])
+                    # print(df[data[0]])
+                    # print(term_in_query[data[0][:-1]])
+                    try:
+                        ranked_tweet[id] = int(data[1]) / int(tweet_file[id][0]) * log10(
+                            number_of_tweet / df[data[0]]) * term_in_query[data[0][:-1]]
+                    except:
+                        ranked_tweet[id] = int(data[1]) / int(tweet_file[id][0]) * log10(number_of_tweet / df[data[0]])
         Wiq = 0
         for term in term_in_query.keys():
             Wiq += term_in_query[term]*term_in_query[term]

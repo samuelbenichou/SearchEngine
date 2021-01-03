@@ -16,11 +16,7 @@ class Posting:
         try:
             with open(self.path, 'a', encoding="cp437",errors='ignore') as f:
                 for key, value in sorted(self.postingDict.items()):
-                    # print(key)
-                    # print(value)
-                    #value.sort(key=self.sort_by_id)
                     f.write("{} : {} \n".format(str(key), str(value)))
-                # f.write("string_output")
         except:
             print('problem with the following key sammm {}'.format(key))
             print(traceback.print_exc())

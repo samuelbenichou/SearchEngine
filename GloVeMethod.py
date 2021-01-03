@@ -8,13 +8,13 @@ class GloVeMethod:
     def __init__(self, glove_input_file='../../../../glove.twitter.27B.25d.txt'):
         self.glove_input_file = glove_input_file
         self.word2vec_output_file = 'glove.twitter.27B.25d.txt.word2vec'
-        glove2word2vec(glove_input_file, self.word2vec_output_file)
+        #glove2word2vec(glove_input_file, self.word2vec_output_file)
 
     def get_filename(self):
         filename = '../../../../glove.twitter.27B.25d.txt'
 
     def most_similar(self, query):
-        glove_input_file = 'glove.twitter.27B.25d.txt'
+        glove_input_file = '../../../../glove.twitter.27B.25d.txt'
         word2vec_output_file = 'glove.twitter.27B.25d.txt.word2vec'
         glove2word2vec(glove_input_file, word2vec_output_file)
         model = KeyedVectors.load_word2vec_format(self.word2vec_output_file, binary=False)
