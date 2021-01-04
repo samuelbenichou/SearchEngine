@@ -6,12 +6,11 @@ from stemmer import Stemmer
 from nltk import ne_chunk, pos_tag
 from nltk.tree import Tree
 import flag
-from reader import ReadFile
 
-symbols = ['+', '-', '*', '=', '/', '//', '#', '.', ',', ':', '!', '?', '•', '|', '||', '~', '$', '%','&',
+symbols = ['+', '-', '*', '=', '', '//', '#', '.', ',', ':', '!', '?', '•', '|', '||', '~', '$', '%','&',
         '(', ')', '{', '}', '[', ']',
         '.', '..', '...', '....', '.....',
-        '’', "'", '”', '“', "''", "``", '^',
+        '’', "'", '”', '"', "''", "``", '^',
         ':', ';','.%']
 stop_words = stopwords.words('english')
 stop_words.extend(['',' ','rt', "'m", "'ve", "'s", "n't"])
@@ -52,21 +51,25 @@ def containOneOrLessLetter(token):
 
 def parse_hashtage(token, l, tokens):
     temp = ''
-    if len(token) <= 1 or isContainOnlySymbols(token) or not token.isascii() or containOneOrLessLetter(token):
+    if len(token) <= 1 or isContainOnlySymbols(token) or not token.isascii():
         return
     elif token.lower() in corona_words:
         l.append('#covid')
         l.append('covid')
-    elif '_' in token:
-        temp = token.split('_')
+    elif isNumber(token):
+        l.append('#'+parse_number(token))
+        l.append(parse_number(token))
     else:
-        temp = re.findall('[^a-z]*[^A-Z][^A-Z]*', token)
-    for j in temp:
-        tokens.append(j.lower())
-    l.append('#' + token.replace('_','').lower())
+        if '_' in token:
+            temp = token.split('_')
+        else:
+            temp = re.findall('[^a-z]*[^A-Z][^A-Z]*', token)
+        for j in temp:
+            tokens.append(j.lower())
+        l.append('#' + token.replace('_', '').lower())
 
 def parst_tag(token, l):
-    if len(token) <= 1 or isContainOnlySymbols(token) or not token.isascii() or containOneOrLessLetter(token):
+    if len(token) <= 1 or isContainOnlySymbols(token) or not token.isascii():
         return False
     if token.lower() in corona_words:
         l.append('@covid')
@@ -93,7 +96,7 @@ def cleanSymbols(token):
             newToken += ch
     return newToken
 
-def cleaning(token, tokens, l):
+def cleaning(token, tokens, l, stem = None):
     if len(token) <= 1 or isContainOnlySymbols(token) or not token.isascii():
         return
     if '.' in token:
@@ -102,6 +105,9 @@ def cleaning(token, tokens, l):
         tokens.extend(token.split('='))
     elif '/' in token:
         tokens.extend(token.split('/'))
+    elif stem and isWord(token):
+        stem_word = stem.stem_term(token)
+        l.append(stem_word)
     else:
         l.append(cleanSymbols(token))
 
@@ -112,6 +118,8 @@ def is_flag_emoji(c):
         "\U0001F3F4\U000e0067\U000e0062\U000e0077\U000e006c\U000e0073\U000e007f"]
 
 def isNumber(token):
+    if check_if_term_is_fraction(token):
+        return True
     term = token.replace('.', '', 1).replace(',', '')
     return term.isascii() and term.isdigit()
 
@@ -133,8 +141,20 @@ def num_format(num, round_to=3):
     ans = '{:.{}f}{}'.format(round(num, round_to), round_to, ['', 'K', 'M', 'B'][magnitude])
     return ans
 
+def containNumber(token):
+    pass
+
+def isWord(token):
+    word = cleanSymbols(token)
+    for ch in word:
+        if isNumber(ch): return False
+    return True
+
 def parse_number(clear_number, size=''):
-    num = float(clear_number)
+    if int(float(clear_number)) < float(clear_number):
+        num = float(clear_number)
+    else:
+        num = int(float(clear_number))
     size = size.lower()
     if size in sizes.keys():
         size = sizes.get(size)
@@ -143,13 +163,29 @@ def parse_number(clear_number, size=''):
     else:
         return str(num_format(num))
 
+def getOriginalTweetId(url):
+    tokens = url.replace('"','').replace('}','').replace("'",'').replace(']','').split('/')
+    i = len(tokens) - 1
+    tweet_id = tokens[i]
+    return tweet_id
+
+def check_if_term_is_fraction(term):
+    values = term.split('/')
+    return len(values) == 2 and all(i.isdigit() for i in values)
+
+
 class Parse:
-    def __init__(self):
+    def __init__(self, stemming=False):
+        temp=0
         self.stemming = None
+        if stemming:
+            self.stemming = Stemmer()
+        self.retweets_counter = {}
 
     def parse_sentence(self, text):
         l = []
         tokens = word_tokenize(text)
+        #print(tokens)
         skip = 0
         i = -1 # index of token in tokens list
         for token in tokens:
@@ -159,6 +195,11 @@ class Parse:
             # CORONA TERMS:
             elif token.lower() in corona_words:
                 l.append('covid')
+            elif is_flag_emoji(token):
+                try:
+                    l.append(flag.ISO3166[flag.dflagize(token)[1:3]])
+                except:
+                    continue
             # HASHTAGS:
             elif token == '#' and i+1 < len(tokens):
                 parse_hashtage(tokens[i+1], l, tokens)
@@ -167,9 +208,15 @@ class Parse:
             elif token == '@' and i+1 < len(tokens):
                 parst_tag(tokens[i+1], l)
                 skip = True
-            # NUMBER AS A WORD:
+            # Size AS A WORD:
             elif token.lower() in sizes.keys():
                 l.append(parse_number('1', token))
+            elif check_if_term_is_fraction(token):
+                if i < len(tokens)-1 and tokens[i+1].lower() in percent:
+                    l.append(token + '%')
+                    skip += 1
+                else:
+                    l.append(token)
             # NUMBERS:
             elif isNumber(token):
                 token = clean_number(token)
@@ -182,20 +229,16 @@ class Parse:
                 elif (i < len(tokens) - 1) and tokens[i+1].lower() in sizes.keys():
                     l.append(parse_number(token, tokens[i+1]))
                     skip += 1
+                elif (i < len(tokens) - 1) and check_if_term_is_fraction(tokens[i+1]):
+                    l.append(token +' '+ tokens[i+1])
+                    skip += 1
                 else:
                     l.append(parse_number(token))
-            # EMOJIS:
-            elif is_flag_emoji(token):
-                try:
-                    l.append(flag.ISO3166[flag.dflagize(token)[1:3]])
-                except:
-                    continue
             # OTHER TOKENS:
             else:
                 cleaning(token, tokens, l)
 
         text_tokens_without_stopwords = [w for w in l if w.lower() not in stop_words]
-        # print(text_tokens_without_stopwords)
         return text_tokens_without_stopwords
 
     def parse_doc(self, doc_as_list):
@@ -208,9 +251,7 @@ class Parse:
         quote_text = doc_as_list[6]
         quote_url = doc_as_list[7]
         term_dict = {}
-        #print(full_text)
         tokenized_text = self.parse_sentence(full_text)
-        #print(tokenized_text)
         doc_length = len(tokenized_text)
 
         for i, term in enumerate(tokenized_text):
@@ -227,12 +268,8 @@ class Parse:
         return document
 
 
+
 if __name__ == '__main__':
-
     p = Parse()
-    r = ReadFile("")
-    text = r.read_file("sample2.parquet")
-    for t in text:
-        print(t[2])
-        p.parse_doc(t)
-
+    # p.parse_sentence('204 35.66 35 3/4 35.75')
+    # t = '@projectlincoln Yesterday new covid cases Denmark 10.0 Norway 11.0 Sweden 57.0 Germany 298.0 United States of America 55.442K'

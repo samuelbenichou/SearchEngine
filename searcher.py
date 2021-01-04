@@ -138,7 +138,7 @@ class Searcher:
         relevant_docs, posting_dic = self._relevant_docs_from_posting(query)
         n_relevant = len(relevant_docs)
         document_score = self._ranker.BM25(relevant_docs, query, posting_dic, self._indexer.tweet_index)
-        print(document_score)
+        #print(document_score)
         ranked_doc_ids = Ranker.rank_relevant_docs(document_score, k)
         return n_relevant, ranked_doc_ids
 

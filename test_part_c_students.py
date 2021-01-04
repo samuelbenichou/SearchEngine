@@ -10,7 +10,7 @@ if __name__ == '__main__':
     import importlib
     import logging
 
-    logging.basicConfig(filename='../../Downloads/Search_Engine-master/part_c_tests.log', level=logging.DEBUG,
+    logging.basicConfig(filename='/Users/samuel/Desktop/Search Engine/part_c_tests.log', level=logging.DEBUG,
                         filemode='w', format='%(levelname)s %(asctime)s: %(message)s')
     import metrics
 
@@ -33,9 +33,9 @@ if __name__ == '__main__':
         return False
 
 
-    bench_data_path = os.path.join('../../Downloads/Search_Engine-master/data', 'benchmark_data_train.snappy.parquet')
-    bench_lbls_path = os.path.join('../../Downloads/Search_Engine-master/data', 'benchmark_lbls_train.csv')
-    queries_path = os.path.join('../../Downloads/Search_Engine-master/data', 'queries_train.tsv')
+    bench_data_path = os.path.join('/Users/samuel/Downloads/data', 'benchmark_data_train.snappy.parquet')
+    bench_lbls_path = os.path.join('/Users/samuel/Downloads/data', 'benchmark_lbls_train.csv')
+    queries_path = os.path.join('/Users/samuel/Downloads/data', 'queries_train.tsv')
 
     start = datetime.now()
     try:

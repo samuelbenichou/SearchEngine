@@ -7,6 +7,9 @@ import utils
 
 
 class search_engine_1(search_engine_interface):
+    ##############################################
+    ###########          GloVe         ###########
+    ##############################################
 
     def __init__(self):
         super().__init__()
@@ -55,4 +58,5 @@ class search_engine_1(search_engine_interface):
 if __name__ == '__main__':
     s = search_engine_1()
     s.build_index_from_parquet("/Users/samuel/Desktop/Corpus/test")
-    s.search("Coronavirus is less dangerous than the flu")
+    #s.search("Coronavirus is less dangerous than the flu")
+    #'bioweapon'

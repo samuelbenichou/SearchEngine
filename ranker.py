@@ -1,6 +1,7 @@
 from math import sqrt
 from math import log10
 import numpy as np
+import math
 
 
 class Ranker:
@@ -24,6 +25,7 @@ class Ranker:
         ranked_results = sorted(relevant_docs.items(), key=lambda item: item[1], reverse=True)
         if k is not None:
             ranked_results = ranked_results[:k]
+        print(ranked_results)
         return [d[0] for d in ranked_results]
 
     def BM25(self, relevant_docs, query, posting_dic, tweet_index):
@@ -59,6 +61,15 @@ class Ranker:
             total += tweet_index[doc][1]
         return total
 
+    @staticmethod
+    def getAxiomaticTermWeightingScore(docDF, termDF, documentLength, docLengthAvg, numOfDocs):
+        #         https://pdfs.semanticscholar.org/94c9/30d010c17f3edc0df39ea99fd311d33327c1.pdf
+
+        mone = docDF * math.pow(numOfDocs, 0.35)
+
+        mehane = (docDF + 0.5 + (0.5 * float(documentLength) / docLengthAvg)) * termDF
+
+        return mone / mehane
 
     @staticmethod
     def _rank_relevant_doc(relevant_doc, number_of_tweet, tweet_file, term_in_query):
