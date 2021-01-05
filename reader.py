@@ -39,5 +39,5 @@ if __name__ == '__main__':
     r = ReadFile('/Users/samuel/Desktop/Corpus/test')
     docs = r.read_file('benchmark_data_train.snappy.parquet')
     for doc in docs:
-        if doc[0] in ['1284696357039747073', '1285703407353892865', '1287435315662266371', '1291170311602413574', '1284110077012541440']:
+        if doc[0] in ['1284696357039747073', '1287435315662266371', '1291170311602413574', '1284110077012541440', '1291807809688961025']:
             print("{} : {}".format(doc[0],doc[2]))
