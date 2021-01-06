@@ -3,8 +3,6 @@ from nltk.tokenize import word_tokenize
 from document import Document
 import re
 from stemmer import Stemmer
-from nltk import ne_chunk, pos_tag
-from nltk.tree import Tree
 import flag
 
 symbols = ['+', '-', '*', '=', '', '//', '#', '.', ',', ':', '!', '?', '•', '|', '||', '~', '$', '%','&',
@@ -96,20 +94,19 @@ def cleanSymbols(token):
             newToken += ch
     return newToken
 
-def cleaning(token, tokens, l, stem = None):
+def cleaning(token, tokens, l):
     if len(token) <= 1 or isContainOnlySymbols(token) or not token.isascii():
         return
     if '.' in token:
         tokens.extend(token.split('.'))
-    elif '=' in token:
-        tokens.extend(token.split('='))
+    # elif '=' in token:
+    #     tokens.extend(token.split('='))
     elif '/' in token:
         tokens.extend(token.split('/'))
-    elif stem and isWord(token):
-        stem_word = stem.stem_term(token)
-        l.append(stem_word)
-    else:
-        l.append(cleanSymbols(token))
+    elif isWord(token):
+        l.append(token)
+    # else:
+    #     l.append(cleanSymbols(token))
 
 def is_flag_emoji(c):
     return "\U0001F1E6\U0001F1E8" <= c <= "\U0001F1FF\U0001F1FC" or c in [
@@ -175,17 +172,18 @@ def check_if_term_is_fraction(term):
 
 
 class Parse:
-    def __init__(self, stemming=False):
-        temp=0
-        self.stemming = None
-        if stemming:
-            self.stemming = Stemmer()
-        self.retweets_counter = {}
+    def __init__(self):
+        pass
 
     def parse_sentence(self, text):
+        """
+        This function tokenize, remove stop words and apply lower case for every word within the text
+        :param text:
+        :return:
+        """
         l = []
         tokens = word_tokenize(text)
-        #print(tokens)
+        print(tokens)
         skip = 0
         i = -1 # index of token in tokens list
         for token in tokens:
@@ -239,9 +237,15 @@ class Parse:
                 cleaning(token, tokens, l)
 
         text_tokens_without_stopwords = [w for w in l if w.lower() not in stop_words]
+        print(text_tokens_without_stopwords)
         return text_tokens_without_stopwords
 
     def parse_doc(self, doc_as_list):
+        """
+        This function takes a tweet document as list and break it into different fields
+        :param doc_as_list: list re-presenting the tweet.
+        :return: Document object with corresponding fields.
+        """
         tweet_id = doc_as_list[0]
         tweet_date = doc_as_list[1]
         full_text = doc_as_list[2]
@@ -252,16 +256,14 @@ class Parse:
         quote_url = doc_as_list[7]
         term_dict = {}
         tokenized_text = self.parse_sentence(full_text)
-        doc_length = len(tokenized_text)
 
-        for i, term in enumerate(tokenized_text):
-            if self.stemming is not None:
-                term = self.stemming.stem_term(term)
+        doc_length = len(tokenized_text)  # after text operations.
+
+        for term in tokenized_text:
             if term not in term_dict.keys():
-                term_dict[term] = [1, [i]]
+                term_dict[term] = 1
             else:
-                term_dict[term][0] += 1
-                term_dict[term][1].append(i)
+                term_dict[term] += 1
 
         document = Document(tweet_id, tweet_date, full_text, url, retweet_text, retweet_url, quote_text,
                             quote_url, term_dict, doc_length)
@@ -273,3 +275,7 @@ if __name__ == '__main__':
     p = Parse()
     # p.parse_sentence('204 35.66 35 3/4 35.75')
     # t = '@projectlincoln Yesterday new covid cases Denmark 10.0 Norway 11.0 Sweden 57.0 Germany 298.0 United States of America 55.442K'
+    # t = 'https://www.instagram.com/p/CD7fAPWs3WM/?igshid=o9kf0ugp1l8x'
+    # t = 'CD7fAPWs3WM/?igshid=o9kf0ugp1l8x'
+    t = 'RT Rt rT rt'
+    p.parse_sentence(t)
