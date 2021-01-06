@@ -3,8 +3,6 @@ from nltk.tokenize import word_tokenize
 from document import Document
 import re
 from stemmer import Stemmer
-from nltk import ne_chunk, pos_tag
-from nltk.tree import Tree
 import flag
 
 symbols = ['+', '-', '*', '=', '', '//', '#', '.', ',', ':', '!', '?', '•', '|', '||', '~', '$', '%','&',
@@ -96,20 +94,19 @@ def cleanSymbols(token):
             newToken += ch
     return newToken
 
-def cleaning(token, tokens, l, stem = None):
+def cleaning(token, tokens, l):
     if len(token) <= 1 or isContainOnlySymbols(token) or not token.isascii():
         return
     if '.' in token:
         tokens.extend(token.split('.'))
-    elif '=' in token:
-        tokens.extend(token.split('='))
+    # elif '=' in token:
+    #     tokens.extend(token.split('='))
     elif '/' in token:
         tokens.extend(token.split('/'))
-    elif stem and isWord(token):
-        stem_word = stem.stem_term(token)
-        l.append(stem_word)
-    else:
-        l.append(cleanSymbols(token))
+    elif isWord(token):
+        l.append(token)
+    # else:
+    #     l.append(cleanSymbols(token))
 
 def is_flag_emoji(c):
     return "\U0001F1E6\U0001F1E8" <= c <= "\U0001F1FF\U0001F1FC" or c in [
@@ -176,11 +173,14 @@ def check_if_term_is_fraction(term):
 
 class Parse:
     def __init__(self):
-        self.stemming = None
-
-        self.retweets_counter = {}
+        pass
 
     def parse_sentence(self, text):
+        """
+        This function tokenize, remove stop words and apply lower case for every word within the text
+        :param text:
+        :return:
+        """
         l = []
         tokens = word_tokenize(text)
         #print(tokens)
@@ -240,6 +240,11 @@ class Parse:
         return text_tokens_without_stopwords
 
     def parse_doc(self, doc_as_list):
+        """
+        This function takes a tweet document as list and break it into different fields
+        :param doc_as_list: list re-presenting the tweet.
+        :return: Document object with corresponding fields.
+        """
         tweet_id = doc_as_list[0]
         tweet_date = doc_as_list[1]
         full_text = doc_as_list[2]
@@ -252,9 +257,9 @@ class Parse:
         tokenized_text = self.parse_sentence(full_text)
         doc_length = len(tokenized_text)
 
-        for i, term in enumerate(tokenized_text):
-            if self.stemming is not None:
-                term = self.stemming.stem_term(term)
+        doc_length = len(tokenized_text)  # after text operations.
+
+        for term in tokenized_text:
             if term not in term_dict.keys():
                 term_dict[term] = [1, [i]]
             else:
