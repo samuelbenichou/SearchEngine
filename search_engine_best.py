@@ -42,8 +42,6 @@ class SearchEngine:
         config.corpusPath = fn
 
         # Get list of all parquets files
-        r = ReadFile(corpus_path=config.get__corpusPath())
-        #filenames = r.get_filenames_path()
         corpus = []
         df = pd.read_parquet(fn, engine="pyarrow")
         value = df.values.tolist()
@@ -69,7 +67,7 @@ class SearchEngine:
         self.three_way_external_merge(self._indexer.inverted_idx, indexer1.postingDict, indexer2.postingDict,
                                       indexer3.postingDict)
         self.merge_indexer(indexer1, indexer2, indexer3)
-        self._indexer.save_index('bench_idx')
+        self._indexer.save_index('idx_bench')
         #'bench_idx'
 
     def process_index(self, documents_list, num_thread):

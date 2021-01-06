@@ -28,13 +28,10 @@ class search_engine_interface:
         config.corpusPath = fn
 
         # Get list of all parquets files
-        r = ReadFile(corpus_path=config.get__corpusPath())
-        filenames = r.get_filenames_path()
         corpus = []
-        for file in filenames:
-            df = pd.read_parquet(file, engine="pyarrow")
-            value = df.values.tolist()
-            corpus.extend(value)
+        df = pd.read_parquet(fn, engine="pyarrow")
+        value = df.values.tolist()
+        corpus.extend(value)
 
         one_third = len(corpus) // 3
 
@@ -164,6 +161,8 @@ class search_engine_interface:
 
         # DO NOT MODIFY THIS SIGNATURE
         # You can change the internal implementation as you see fit.
+
+
     def load_index(self, fn):
         """
         Loads a pre-computed index (or indices) so we can answer queries.
@@ -174,7 +173,7 @@ class search_engine_interface:
 
     # DO NOT MODIFY THIS SIGNATURE
     # You can change the internal implementation as you see fit.
-    def load_precomputed_model(self):
+    def load_precomputed_model(self, model_dir=None):
         """
         Loads a pre-computed model (or models) so we can answer queries.
         This is where you would load models like word2vec, LSI, LDA, etc. and

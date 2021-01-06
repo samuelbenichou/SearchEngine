@@ -1,6 +1,6 @@
 from search_engine_interface import search_engine_interface
 from searcher import Searcher
-from configuration import ConfigClass
+import configuration
 from spellchecker import SpellChecker
 
 
@@ -10,16 +10,14 @@ class SearchEngine(search_engine_interface):
     ###########      SpellChecker      ###########
     ##############################################
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, config=None):
+        super(SearchEngine, self).__init__(config)
 
 
     def search(self, query):
         query_as_list = self.splellChecker(query)
         searcher = Searcher(self._parser, self._indexer, model=self._model)
-        print(query_as_list)
         n_relevant, ranked_doc_ids = searcher.search(query_as_list,5)
-        print(ranked_doc_ids)
         return n_relevant, ranked_doc_ids
 
 

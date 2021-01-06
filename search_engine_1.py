@@ -11,21 +11,19 @@ class SearchEngine(search_engine_interface):
     ###########          GloVe         ###########
     ##############################################
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, config=None):
+        super(SearchEngine, self).__init__(config)
         self.glove_input_file = 'glove.twitter.27B.25d.txt'
         self.word2vec_output_file = 'glove.twitter.27B.25d.txt.word2vec'
         self.local_cache = {}
 
 
     def search(self, query):
-        query_as_list = self.parser.parse_sentence(query)
+        query_as_list = self._parser.parse_sentence(query)
         query_expansion = self.query_expansion(query_as_list)
         self.add_similar_word_to_query(query_as_list, query_expansion)
-        searcher = Searcher(self.parser, self.indexer, model=self.model)
-        print(query_as_list)
+        searcher = Searcher(self._parser, self._indexer, model=self._model)
         n_relevant, ranked_doc_ids = searcher.search(query_as_list,5)
-        print(ranked_doc_ids)
         return n_relevant, ranked_doc_ids
 
 
@@ -52,9 +50,6 @@ class SearchEngine(search_engine_interface):
                     pass
         return result
 
-
-    def get_filename(self):
-        filename = '../../../../glove.twitter.27B.25d.txt'
 
 if __name__ == '__main__':
     s = SearchEngine()

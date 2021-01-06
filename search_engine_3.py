@@ -1,9 +1,7 @@
 from search_engine_interface import search_engine_interface
 from searcher import Searcher
 from nltk.corpus import wordnet
-import nltk
 from configuration import ConfigClass
-import utils
 
 
 class SearchEngine(search_engine_interface):
@@ -11,8 +9,8 @@ class SearchEngine(search_engine_interface):
     ###########         WordNet        ###########
     ##############################################
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, config=None):
+        super(SearchEngine, self).__init__(config)
         self.local_cache = {}
 
 
@@ -21,9 +19,7 @@ class SearchEngine(search_engine_interface):
         query_expansion = self.query_expansion(query_as_list)
         self.add_similar_word_to_query(query_as_list, query_expansion)
         searcher = Searcher(self._parser, self._indexer, model=self._model)
-        print(query_as_list)
         n_relevant, ranked_doc_ids = searcher.search(query_as_list,5)
-        print(ranked_doc_ids)
         return n_relevant, ranked_doc_ids
 
 

@@ -10,8 +10,8 @@ class SearchEngine(search_engine_interface):
     ###########        Word2Vec        ###########
     ##############################################
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, config=None):
+        super(SearchEngine, self).__init__(config)
         self.url = "http://bionlp-www.utu.fi/wv_demo/nearest"
         self.data = {'form[1][name]': 'topn', 'form[0][name]': 'word', 'model_name': "English GoogleNews Negative300", }
         self.local_cache = {}

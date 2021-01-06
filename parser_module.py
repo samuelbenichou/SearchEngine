@@ -253,8 +253,6 @@ class Parse:
         quote_url = doc_as_list[7]
         term_dict = {}
         tokenized_text = self.parse_sentence(full_text)
-        doc_length = len(tokenized_text)
-
         doc_length = len(tokenized_text)  # after text operations.
 
         for i, term in enumerate(tokenized_text):
