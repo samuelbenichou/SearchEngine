@@ -2,7 +2,6 @@ from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from document import Document
 import re
-from stemmer import Stemmer
 import flag
 
 symbols = ['+', '-', '*', '=', '', '//', '#', '.', ',', ':', '!', '?', '•', '|', '||', '~', '$', '%','&',
@@ -104,9 +103,7 @@ def cleaning(token, tokens, l):
     elif '/' in token:
         tokens.extend(token.split('/'))
     elif isWord(token):
-        l.append(token)
-    # else:
-    #     l.append(cleanSymbols(token))
+        l.append(cleanSymbols(token))
 
 def is_flag_emoji(c):
     return "\U0001F1E6\U0001F1E8" <= c <= "\U0001F1FF\U0001F1FC" or c in [
@@ -237,6 +234,7 @@ class Parse:
                 cleaning(token, tokens, l)
 
         text_tokens_without_stopwords = [w for w in l if w.lower() not in stop_words]
+        # print(text_tokens_without_stopwords)
         return text_tokens_without_stopwords
 
     def parse_doc(self, doc_as_list):
@@ -259,7 +257,7 @@ class Parse:
 
         doc_length = len(tokenized_text)  # after text operations.
 
-        for term in tokenized_text:
+        for i, term in enumerate(tokenized_text):
             if term not in term_dict.keys():
                 term_dict[term] = [1, [i]]
             else:
@@ -276,3 +274,5 @@ if __name__ == '__main__':
     p = Parse()
     # p.parse_sentence('204 35.66 35 3/4 35.75')
     # t = '@projectlincoln Yesterday new covid cases Denmark 10.0 Norway 11.0 Sweden 57.0 Germany 298.0 United States of America 55.442K'
+    text = "'Ate"
+    p.parse_sentence(text)
