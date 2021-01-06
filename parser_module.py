@@ -175,11 +175,9 @@ def check_if_term_is_fraction(term):
 
 
 class Parse:
-    def __init__(self, stemming=False):
-        temp=0
+    def __init__(self):
         self.stemming = None
-        if stemming:
-            self.stemming = Stemmer()
+
         self.retweets_counter = {}
 
     def parse_sentence(self, text):

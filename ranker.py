@@ -25,8 +25,20 @@ class Ranker:
         ranked_results = sorted(relevant_docs.items(), key=lambda item: item[1], reverse=True)
         if k is not None:
             ranked_results = ranked_results[:k]
-        print(ranked_results)
+        #print(ranked_results)
         return [d[0] for d in ranked_results]
+
+
+    def getAxiomaticTermWeightingScore(self, relevant_docs, posting_dic, tweet_index, term, document):
+        N = len(tweet_index)
+        f = posting_dic[term][document]
+        term_frequency_in_query = 1
+        mone = f * math.pow(N, 0.35)
+        field_len = tweet_index[document][1]
+        avg_field_len = self.total_len(relevant_docs, tweet_index) / N
+        mehane = (f + 0.5 + (0.5 * float(field_len) / avg_field_len)) * len(posting_dic[term])
+        return mone / mehane
+
 
     def BM25(self, relevant_docs, query, posting_dic, tweet_index):
         """
@@ -41,7 +53,8 @@ class Ranker:
                 if document in posting_dic[term].keys():
                     f = posting_dic[term][document]
                     field_len = tweet_index[document][1]
-                    score += self.IDF(posting_dic, term, N) * ((self.K+1)*f)/(f+self.K*(1-self.B+self.B*(field_len/avg_field_len)))
+                    #term_score = self.getAxiomaticTermWeightingScore(relevant_docs,posting_dic, tweet_index, term, document)
+                    score += (self.IDF(posting_dic, term, N) * ((self.K+1)*f)/(f+self.K*(1-self.B+self.B*(field_len/avg_field_len))))#+(term_score)
             document_score[document] = score
         return document_score
 
@@ -61,15 +74,6 @@ class Ranker:
             total += tweet_index[doc][1]
         return total
 
-    @staticmethod
-    def getAxiomaticTermWeightingScore(docDF, termDF, documentLength, docLengthAvg, numOfDocs):
-        #         https://pdfs.semanticscholar.org/94c9/30d010c17f3edc0df39ea99fd311d33327c1.pdf
-
-        mone = docDF * math.pow(numOfDocs, 0.35)
-
-        mehane = (docDF + 0.5 + (0.5 * float(documentLength) / docLengthAvg)) * termDF
-
-        return mone / mehane
 
     @staticmethod
     def _rank_relevant_doc(relevant_doc, number_of_tweet, tweet_file, term_in_query):

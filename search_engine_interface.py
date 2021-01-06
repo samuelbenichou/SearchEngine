@@ -12,9 +12,9 @@ class search_engine_interface:
 
     def __init__(self, config=None):
         self._config = config
-        self.parser = Parse()
-        self.indexer = Indexer(config)
-        self.model = None
+        self._parser = Parse()
+        self._indexer = Indexer(config)
+        self._model = None
 
 
     def build_index_from_parquet(self, fn):
@@ -47,15 +47,15 @@ class search_engine_interface:
         indexer2 = f2.result()
         indexer3 = f3.result()
 
-        self.indexer.inverted_idx = self.merge_inverted_index(indexer1.inverted_idx, indexer2.inverted_idx, indexer3.inverted_idx)
-        self.three_way_external_merge(self.indexer.inverted_idx, indexer1.postingDict, indexer2.postingDict, indexer3.postingDict)
+        self._indexer.inverted_idx = self.merge_inverted_index(indexer1.inverted_idx, indexer2.inverted_idx, indexer3.inverted_idx)
+        self.three_way_external_merge(self._indexer.inverted_idx, indexer1.postingDict, indexer2.postingDict, indexer3.postingDict)
         self.merge_indexer(indexer1, indexer2, indexer3)
 
 
     def merge_indexer(self, *indexers):
         for indexer in indexers:
             for doc_id, value in indexer.tweet_index.items():
-                self.indexer.tweet_index[doc_id] = value
+                self._indexer.tweet_index[doc_id] = value
 
 
     def merge_inverted_index(self, *inverted_index_dicts):
@@ -153,11 +153,40 @@ class search_engine_interface:
     def add_similar_word_to_query(self, query_as_list, query_expansion):
         pass
 
+    def add_hashtag_entities(self, query_as_list):
+        result = []
+        for term in query_as_list:
+            result.append('#{}'.format(term.lower()))
+            if term[0].isupper():
+                result.append(term[0].lower() + term[1:])
+        print(result)
+        return result
+
+        # DO NOT MODIFY THIS SIGNATURE
+        # You can change the internal implementation as you see fit.
+    def load_index(self, fn):
+        """
+        Loads a pre-computed index (or indices) so we can answer queries.
+        Input:
+            fn - file name of pickled index.
+        """
+        self._indexer.load_index(fn)
+
+    # DO NOT MODIFY THIS SIGNATURE
+    # You can change the internal implementation as you see fit.
+    def load_precomputed_model(self):
+        """
+        Loads a pre-computed model (or models) so we can answer queries.
+        This is where you would load models like word2vec, LSI, LDA, etc. and
+        assign to self._model, which is passed on to the searcher at query time.
+        """
+        pass
 
 
 if __name__ == '__main__':
     s = search_engine_interface(ConfigClass())
-    s.build_index_from_parquet("/Users/samuel/Desktop/Corpus/test")
+    #s.build_index_from_parquet("/Users/samuel/Desktop/Corpus/test")
+    s.add_hashtag_entities(['covid','LESS','Dangerous'])
 
 
 

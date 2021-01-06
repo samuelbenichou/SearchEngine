@@ -6,7 +6,7 @@ from configuration import ConfigClass
 import utils
 
 
-class search_engine_1(search_engine_interface):
+class SearchEngine(search_engine_interface):
     ##############################################
     ###########          GloVe         ###########
     ##############################################
@@ -26,6 +26,7 @@ class search_engine_1(search_engine_interface):
         print(query_as_list)
         n_relevant, ranked_doc_ids = searcher.search(query_as_list,5)
         print(ranked_doc_ids)
+        return n_relevant, ranked_doc_ids
 
 
     def add_similar_word_to_query(self, query_as_list, query_expansion):
@@ -56,7 +57,7 @@ class search_engine_1(search_engine_interface):
         filename = '../../../../glove.twitter.27B.25d.txt'
 
 if __name__ == '__main__':
-    s = search_engine_1()
+    s = SearchEngine()
     s.build_index_from_parquet("/Users/samuel/Desktop/Corpus/test")
     #s.search("Coronavirus is less dangerous than the flu")
     #'bioweapon'

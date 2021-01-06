@@ -5,7 +5,7 @@ import utils
 import requests
 import time
 
-class search_engine_2(search_engine_interface):
+class SearchEngine(search_engine_interface):
     ##############################################
     ###########        Word2Vec        ###########
     ##############################################
@@ -17,12 +17,13 @@ class search_engine_2(search_engine_interface):
         self.local_cache = {}
 
     def search(self, query):
-        query_as_list = self.parser.parse_sentence(query)
+        query_as_list = self._parser.parse_sentence(query)
         query_expansion = self.query_expansion(query_as_list)
         self.add_similar_word_to_query(query_as_list, query_expansion)
-        searcher = Searcher(self.parser, self.indexer, model=self.model)
-        n_relevant, ranked_doc_ids = searcher.search(query_as_list, 20)
+        searcher = Searcher(self._parser, self._indexer, model=self._model)
+        n_relevant, ranked_doc_ids = searcher.search(query_as_list, 10)
         print(ranked_doc_ids)
+        return n_relevant, ranked_doc_ids
 
     def add_similar_word_to_query(self, query_as_list, query_expansion):
         for word in query_expansion.keys():
@@ -67,8 +68,9 @@ class search_engine_2(search_engine_interface):
         return response_text
 
 if __name__ == "__main__":
-    s = search_engine_2()
+    s = SearchEngine()
     s.build_index_from_parquet("/Users/samuel/Desktop/Corpus/test")
     s.search("Coronavirus is less dangerous than the flu")
+    #print(s.parser.parse_sentence("Coronavirus is less dangerous than the flu"))
     #1284110077012541440
     #1284920404302274561
