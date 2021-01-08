@@ -15,7 +15,7 @@ stop_words.extend(['http', 'https', 'www', 'com', 'co'])
 stop_words.extend(symbols)
 percent = ['%', 'percent', 'percentage']
 corona_words = ['corona','coronavirus', 'covid', 'covid-19', 'covid_19', 'covid19','coronavirusrelated']
-sizes = {'thousand':1000, 'million':1000000, 'billion':1000000000}
+sizes = {'thousand':1000, 'million':1000000, 'billion':1000000000, 'k':1000, 'm':1000000, 'b':1000000000}
 regrex_pattern = re.compile(pattern="["
                                             "\U0001F1E0-\U0001F1FF"  # flags (iOS)
                                             "\U0001F300-\U0001F5FF"  # symbols & pictographs
@@ -102,7 +102,9 @@ def cleaning(token, tokens, l):
     #     tokens.extend(token.split('='))
     elif '/' in token:
         tokens.extend(token.split('/'))
-    elif isWord(token):
+    # elif isWord(token):
+    #     l.append(cleanSymbols(token))
+    else:
         l.append(cleanSymbols(token))
 
 def is_flag_emoji(c):
@@ -180,7 +182,7 @@ class Parse:
         """
         l = []
         tokens = word_tokenize(text)
-        #print(tokens)
+        print(tokens)
         skip = 0
         i = -1 # index of token in tokens list
         for token in tokens:
@@ -229,12 +231,15 @@ class Parse:
                     skip += 1
                 else:
                     l.append(parse_number(token))
+            elif isNumber(token[0:len(token) - 1]) and token[len(token)-1].lower() in sizes:
+                tokens.append(token[0:len(token) - 1])
+                tokens.append(token[len(token)-1])
             # OTHER TOKENS:
             else:
                 cleaning(token, tokens, l)
 
         text_tokens_without_stopwords = [w for w in l if w.lower() not in stop_words]
-        # print(text_tokens_without_stopwords)
+        print(text_tokens_without_stopwords)
         return text_tokens_without_stopwords
 
     def parse_doc(self, doc_as_list):
@@ -272,5 +277,8 @@ if __name__ == '__main__':
     p = Parse()
     # p.parse_sentence('204 35.66 35 3/4 35.75')
     # t = '@projectlincoln Yesterday new covid cases Denmark 10.0 Norway 11.0 Sweden 57.0 Germany 298.0 United States of America 55.442K'
-    text = "'Ate"
+    text = "5g"
+    # t = '55.442K'
+    # isNumber(token[0:len(token) - 1]) and token[len(token) - 1] in sizes:
     p.parse_sentence(text)
+    # print(t[len(t) - 1].lower() in sizes)
