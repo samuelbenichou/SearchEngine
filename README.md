@@ -23,5 +23,16 @@ Model:
 - searcher , return the relevant tweets
 
 
+## 💡 Prerequisite
+[Python 3.7](https://www.python.org/download/releases/3.7/)
 
 
+## 🛠️ Installation
+
+### With Github
+
+```bash
+git clone https://github.com/samuelbenichou/SearchEngine.git
+cd SearchEngine/
+python3 setup.py install
+```
