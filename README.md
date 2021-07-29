@@ -24,7 +24,7 @@ Model:
 
 
 ## 💡 Prerequisite
-[Python 3.7](https://www.python.org/download/releases/3.7/)
+[Python 3.7](https://www.python.org/downloads/release/python-3711/)
 
 
 ## 🛠️ Installation
